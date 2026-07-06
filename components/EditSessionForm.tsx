@@ -4,6 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RunningTotalHero } from "@/components/RunningTotalHero";
 import { DenominationInput, parseDraft } from "@/components/DenominationInput";
+import { KindSelector } from "@/components/KindSelector";
+import type { SessionKindValue } from "@/lib/kinds";
 import {
   EMPTY_DRAFTS,
   effectiveCounts,
@@ -25,18 +27,21 @@ export function EditSessionForm({
   sessionId,
   initialDate,
   initialCounts,
+  initialKind,
   initialNote,
   originalTotal,
 }: {
   sessionId: string;
   initialDate: string;
   initialCounts: DenomCounts;
+  initialKind: SessionKindValue;
   initialNote: string;
   originalTotal: number;
 }) {
   const router = useRouter();
   const [bank, setBank] = useState<DenomCounts>(initialCounts);
   const [drafts, setDrafts] = useState<DenomDrafts>({ ...EMPTY_DRAFTS });
+  const [kind, setKind] = useState<SessionKindValue>(initialKind);
   const [date, setDate] = useState(initialDate);
   const [note, setNote] = useState(initialNote);
   const boundUpdateSession = updateSession.bind(null, sessionId);
@@ -92,6 +97,8 @@ export function EditSessionForm({
       style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
     >
       <RunningTotalHero label="Session total" dateLabel={date} total={total} />
+
+      <KindSelector value={kind} onChange={setKind} />
 
       {totalChanged && (
         <p className="rounded-xl bg-brand-orange/10 px-4 py-2 text-sm font-medium text-brand-orange-dark">

@@ -3,7 +3,9 @@
 import { useActionState, useEffect, useState } from "react";
 import { RunningTotalHero } from "@/components/RunningTotalHero";
 import { DenominationInput, parseDraft } from "@/components/DenominationInput";
+import { KindSelector } from "@/components/KindSelector";
 import { createSession } from "@/lib/actions/sessions";
+import type { SessionKindValue } from "@/lib/kinds";
 import {
   DENOMINATIONS,
   EMPTY_COUNTS,
@@ -59,6 +61,7 @@ function todayLabel() {
 export function NewSessionForm() {
   const [bank, setBank] = useState<DenomCounts>({ ...EMPTY_COUNTS });
   const [drafts, setDrafts] = useState<DenomDrafts>({ ...EMPTY_DRAFTS });
+  const [kind, setKind] = useState<SessionKindValue>("LAUNDRY");
   const [note, setNote] = useState("");
   const [showMoreNotes, setShowMoreNotes] = useState(false);
   const [showMoreCoins, setShowMoreCoins] = useState(false);
@@ -84,6 +87,7 @@ export function NewSessionForm() {
     if (state && "ok" in state && state.ok) {
       setBank({ ...EMPTY_COUNTS });
       setDrafts({ ...EMPTY_DRAFTS });
+      setKind("LAUNDRY");
       setNote("");
     }
   }, [state]);
@@ -121,6 +125,8 @@ export function NewSessionForm() {
         dateLabel={todayLabel()}
         total={total}
       />
+
+      <KindSelector value={kind} onChange={setKind} />
 
       <p className="px-1 text-xs text-brand-muted">
         Count a stack, type it, tap <span className="font-bold">+</span> — it

@@ -3,48 +3,70 @@ import { prisma } from "@/lib/db";
 import { DENOMINATIONS } from "@/lib/denominations";
 import { DENOM_COLORS, OTHER_COLOR } from "@/lib/chartColors";
 import { computeProjections } from "@/lib/projections";
-import { getRecentSessions } from "@/lib/data/sessions";
+
+/**
+ * Group sessions into per-day totals (multiple same-day sessions of different
+ * kinds count as one collection day). Returned ascending by date.
+ */
+function toDailyTotals(sessions: { date: Date; totalBaht: number }[]) {
+  const byDay = new Map<string, { date: Date; totalBaht: number }>();
+  for (const s of sessions) {
+    const key = s.date.toISOString().slice(0, 10);
+    const existing = byDay.get(key);
+    if (existing) {
+      existing.totalBaht += s.totalBaht;
+    } else {
+      byDay.set(key, { date: s.date, totalBaht: s.totalBaht });
+    }
+  }
+  return Array.from(byDay.values()).sort(
+    (a, b) => a.date.getTime() - b.date.getTime(),
+  );
+}
+
+async function getAllSessions() {
+  return prisma.collectionSession.findMany({
+    orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+    select: {
+      date: true,
+      totalBaht: true,
+      note1000: true,
+      note500: true,
+      note100: true,
+      note50: true,
+      note20: true,
+      coin10: true,
+      coin5: true,
+      coin2: true,
+      coin1: true,
+    },
+  });
+}
 
 export async function getDashboardStats() {
-  const [aggregate, sessionCount, lastSession, allSessions] = await Promise.all([
-    prisma.collectionSession.aggregate({ _sum: { totalBaht: true } }),
-    prisma.collectionSession.count(),
-    prisma.collectionSession.findFirst({ orderBy: { date: "desc" } }),
-    prisma.collectionSession.findMany({
-      orderBy: { date: "asc" },
-      select: {
-        date: true,
-        totalBaht: true,
-        note1000: true,
-        note500: true,
-        note100: true,
-        note50: true,
-        note20: true,
-        coin10: true,
-        coin5: true,
-        coin2: true,
-        coin1: true,
-      },
-    }),
-  ]);
+  const allSessions = await getAllSessions();
+  const dailyTotals = toDailyTotals(allSessions);
 
-  const totalCollected = aggregate._sum.totalBaht ?? 0;
-  const averagePerSession = sessionCount > 0 ? totalCollected / sessionCount : null;
+  const totalCollected = allSessions.reduce((sum, s) => sum + s.totalBaht, 0);
+  const sessionCount = allSessions.length;
+  const dayCount = dailyTotals.length;
+  const averagePerDay = dayCount > 0 ? totalCollected / dayCount : null;
 
+  const lastDay = dailyTotals[dailyTotals.length - 1] ?? null;
   const today = new Date();
-  const daysSinceLastCollection = lastSession
+  const daysSinceLastCollection = lastDay
     ? Math.round(
-        (today.getTime() - lastSession.date.getTime()) / (1000 * 60 * 60 * 24),
+        (today.getTime() - lastDay.date.getTime()) / (1000 * 60 * 60 * 24),
       )
     : null;
 
   let averageDaysBetweenCollections: number | null = null;
-  if (allSessions.length >= 2) {
+  if (dailyTotals.length >= 2) {
     const gaps: number[] = [];
-    for (let i = 1; i < allSessions.length; i++) {
+    for (let i = 1; i < dailyTotals.length; i++) {
       gaps.push(
         Math.round(
-          (allSessions[i].date.getTime() - allSessions[i - 1].date.getTime()) /
+          (dailyTotals[i].date.getTime() - dailyTotals[i - 1].date.getTime()) /
             (1000 * 60 * 60 * 24),
         ),
       );
@@ -81,28 +103,30 @@ export async function getDashboardStats() {
     ([month, total]) => ({ month, total }),
   );
 
-  const perSessionSeries = allSessions.slice(-20).map((s) => ({
-    date: s.date.toISOString().slice(0, 10),
-    totalBaht: s.totalBaht,
+  const dailySeries = dailyTotals.slice(-20).map((d) => ({
+    date: d.date.toISOString().slice(0, 10),
+    totalBaht: d.totalBaht,
   }));
 
   return {
     totalCollected,
     sessionCount,
-    lastSessionDate: lastSession?.date ?? null,
+    dayCount,
+    lastCollectionDate: lastDay?.date ?? null,
     daysSinceLastCollection,
-    averagePerSession,
+    averagePerDay,
     averageDaysBetweenCollections,
     denominationMix,
     monthlyTotals,
-    perSessionSeries,
+    dailySeries,
   };
 }
 
 export async function getProjections() {
-  const recent = await getRecentSessions(10);
-  return computeProjections(
-    recent.map((s) => ({ date: s.date, totalBaht: s.totalBaht })),
-    new Date(),
-  );
+  const allSessions = await prisma.collectionSession.findMany({
+    orderBy: { date: "asc" },
+    select: { date: true, totalBaht: true },
+  });
+  const dailyTotals = toDailyTotals(allSessions);
+  return computeProjections(dailyTotals.slice(-10), new Date());
 }

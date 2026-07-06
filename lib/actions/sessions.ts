@@ -20,6 +20,7 @@ const countsSchema = z.object({
 
 const sessionInputSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date"),
+  kind: z.enum(["LAUNDRY", "SNOOKER", "LUMP_SUM"]),
   counts: countsSchema,
   note: z.string().trim().max(500),
 });
@@ -52,6 +53,7 @@ export async function createSession(
 
   const parsed = sessionInputSchema.safeParse({
     date: String(formData.get("date") ?? ""),
+    kind: String(formData.get("kind") ?? "LAUNDRY"),
     counts: parseCountsFromFormData(formData),
     note: String(formData.get("note") ?? ""),
   });
@@ -60,12 +62,13 @@ export async function createSession(
     return { ok: false, error: "Invalid session data" };
   }
 
-  const { date, counts, note } = parsed.data;
+  const { date, kind, counts, note } = parsed.data;
   const totalBaht = computeTotal(counts);
 
   const session = await prisma.collectionSession.create({
     data: {
       date: toDateOnlyUtc(date),
+      kind,
       ...counts,
       totalBaht,
       note: note.length > 0 ? note : null,
@@ -77,6 +80,26 @@ export async function createSession(
   revalidatePath("/dashboard");
 
   return { ok: true, id: session.id };
+}
+
+export async function setPaid(
+  id: string,
+  paid: boolean,
+): Promise<SessionActionResult> {
+  if (!(await isAuthenticated())) {
+    return { ok: false, error: "Unauthorized" };
+  }
+
+  try {
+    await prisma.collectionSession.update({ where: { id }, data: { paid } });
+  } catch {
+    return { ok: false, error: "Session not found" };
+  }
+
+  revalidatePath("/sessions");
+  revalidatePath(`/sessions/${id}`);
+
+  return { ok: true, id };
 }
 
 export async function deleteSession(id: string): Promise<SessionActionResult> {
@@ -108,6 +131,7 @@ export async function updateSession(
 
   const parsed = sessionInputSchema.safeParse({
     date: String(formData.get("date") ?? ""),
+    kind: String(formData.get("kind") ?? "LAUNDRY"),
     counts: parseCountsFromFormData(formData),
     note: String(formData.get("note") ?? ""),
   });
@@ -116,13 +140,14 @@ export async function updateSession(
     return { ok: false, error: "Invalid session data" };
   }
 
-  const { date, counts, note } = parsed.data;
+  const { date, kind, counts, note } = parsed.data;
   const totalBaht = computeTotal(counts);
 
   await prisma.collectionSession.update({
     where: { id },
     data: {
       date: toDateOnlyUtc(date),
+      kind,
       ...counts,
       totalBaht,
       note: note.length > 0 ? note : null,

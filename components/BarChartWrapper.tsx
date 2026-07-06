@@ -13,7 +13,7 @@ import {
 import { formatBaht } from "@/lib/denominations";
 import { AXIS_MUTED, GRIDLINE, SEQUENTIAL_BAR_COLOR } from "@/lib/chartColors";
 
-export interface PerSessionPoint {
+export interface DailyPoint {
   date: string;
   totalBaht: number;
 }
@@ -44,35 +44,35 @@ function formatMonth(key: string) {
 }
 
 export function BarChartWrapper({
-  perSession,
+  daily,
   monthly,
 }: {
-  perSession: PerSessionPoint[];
+  daily: DailyPoint[];
   monthly: MonthlyPoint[];
 }) {
-  const [view, setView] = useState<"session" | "monthly">("session");
-  const hasData = perSession.length > 0;
+  const [view, setView] = useState<"daily" | "monthly">("daily");
+  const hasData = daily.length > 0;
 
   const data =
-    view === "session"
-      ? perSession.map((p) => ({ label: formatShortDate(p.date), value: p.totalBaht }))
+    view === "daily"
+      ? daily.map((p) => ({ label: formatShortDate(p.date), value: p.totalBaht }))
       : monthly.map((m) => ({ label: formatMonth(m.month), value: m.total }));
 
   return (
     <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-brand-navy">
-          {view === "session" ? "Per session" : "Monthly totals"}
+          {view === "daily" ? "Per collection day" : "Monthly totals"}
         </h3>
         <div className="flex gap-1 rounded-full bg-black/5 p-1 text-xs font-medium">
           <button
             type="button"
-            onClick={() => setView("session")}
+            onClick={() => setView("daily")}
             className={`rounded-full px-3 py-1 transition ${
-              view === "session" ? "bg-white text-brand-navy shadow-sm" : "text-brand-muted"
+              view === "daily" ? "bg-white text-brand-navy shadow-sm" : "text-brand-muted"
             }`}
           >
-            Sessions
+            Daily
           </button>
           <button
             type="button"

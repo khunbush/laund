@@ -45,8 +45,9 @@ export default async function DashboardPage() {
           />
           <StatCard
             variant="purple"
-            label="Avg / Session"
-            value={stats.averagePerSession ? formatBaht(stats.averagePerSession) : "—"}
+            label="Avg / Collection Day"
+            value={stats.averagePerDay ? formatBaht(stats.averagePerDay) : "—"}
+            caption={`${stats.dayCount} days`}
           />
           <StatCard
             variant={
@@ -60,7 +61,7 @@ export default async function DashboardPage() {
                 ? `${stats.daysSinceLastCollection}d`
                 : "—"
             }
-            caption={formatDate(stats.lastSessionDate)}
+            caption={formatDate(stats.lastCollectionDate)}
           />
           <StatCard
             variant="white"
@@ -87,7 +88,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-brand-muted">Projected next session</p>
+                <p className="text-xs text-brand-muted">Projected next collection</p>
                 <p className="text-lg font-bold text-brand-purple-dark">
                   {formatBaht(projections.projectedNextSessionAmount ?? 0)}
                 </p>
@@ -109,7 +110,7 @@ export default async function DashboardPage() {
         </section>
 
         <BarChartWrapper
-          perSession={stats.perSessionSeries}
+          daily={stats.dailySeries}
           monthly={stats.monthlyTotals}
         />
 

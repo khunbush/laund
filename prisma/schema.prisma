@@ -7,10 +7,19 @@ datasource db {
   provider = "postgresql"
 }
 
+enum SessionKind {
+  LAUNDRY
+  SNOOKER
+  LUMP_SUM
+}
+
 model CollectionSession {
   id String @id @default(cuid())
 
   date DateTime @db.Date
+
+  kind SessionKind @default(LAUNDRY)
+  paid Boolean     @default(false)
 
   note1000 Int @default(0)
   note500  Int @default(0)
