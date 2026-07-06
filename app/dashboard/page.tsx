@@ -125,7 +125,11 @@ export default async function DashboardPage() {
             <h2 className="text-sm font-semibold text-brand-navy">
               Recent Sessions
             </h2>
-            <Link href="/sessions" className="text-xs font-medium text-brand-purple">
+            <Link
+              href="/sessions"
+              prefetch={true}
+              className="text-xs font-medium text-brand-purple"
+            >
               View all →
             </Link>
           </div>

@@ -2,17 +2,43 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { RunningTotalHero } from "@/components/RunningTotalHero";
-import { DenominationInput } from "@/components/DenominationInput";
+import { DenominationInput, parseDraft } from "@/components/DenominationInput";
 import { createSession } from "@/lib/actions/sessions";
 import {
   DENOMINATIONS,
   EMPTY_COUNTS,
   computeTotal,
   type DenomCounts,
+  type DenomKey,
 } from "@/lib/denominations";
 
 const notes = DENOMINATIONS.filter((d) => d.kind === "note");
 const coins = DENOMINATIONS.filter((d) => d.kind === "coin");
+
+export type DenomDrafts = Record<DenomKey, string>;
+
+export const EMPTY_DRAFTS: DenomDrafts = {
+  note1000: "",
+  note500: "",
+  note100: "",
+  note50: "",
+  note20: "",
+  coin10: "",
+  coin5: "",
+  coin2: "",
+  coin1: "",
+};
+
+export function effectiveCounts(
+  bank: DenomCounts,
+  drafts: DenomDrafts,
+): DenomCounts {
+  const out = { ...bank };
+  for (const key of Object.keys(out) as DenomKey[]) {
+    out[key] += parseDraft(drafts[key]);
+  }
+  return out;
+}
 
 function todayIso() {
   const now = new Date();
@@ -31,28 +57,63 @@ function todayLabel() {
 }
 
 export function NewSessionForm() {
-  const [counts, setCounts] = useState<DenomCounts>({ ...EMPTY_COUNTS });
+  const [bank, setBank] = useState<DenomCounts>({ ...EMPTY_COUNTS });
+  const [drafts, setDrafts] = useState<DenomDrafts>({ ...EMPTY_DRAFTS });
   const [note, setNote] = useState("");
   const [showMoreNotes, setShowMoreNotes] = useState(false);
   const [showMoreCoins, setShowMoreCoins] = useState(false);
   const [state, formAction, pending] = useActionState(createSession, undefined);
 
-  const total = computeTotal(counts);
+  const total = computeTotal(effectiveCounts(bank, drafts));
   const date = todayIso();
 
-  function setCount(key: keyof DenomCounts, value: number) {
-    setCounts((prev) => ({ ...prev, [key]: value }));
+  function commit(key: DenomKey) {
+    setBank((prev) => ({ ...prev, [key]: prev[key] + parseDraft(drafts[key]) }));
+    setDrafts((prev) => ({ ...prev, [key]: "" }));
+  }
+
+  function recall(key: DenomKey) {
+    setDrafts((prev) => ({
+      ...prev,
+      [key]: String(bank[key] + parseDraft(prev[key])),
+    }));
+    setBank((prev) => ({ ...prev, [key]: 0 }));
   }
 
   useEffect(() => {
     if (state && "ok" in state && state.ok) {
-      setCounts({ ...EMPTY_COUNTS });
+      setBank({ ...EMPTY_COUNTS });
+      setDrafts({ ...EMPTY_DRAFTS });
       setNote("");
     }
   }, [state]);
 
+  function renderRow(d: (typeof DENOMINATIONS)[number], mutedRow = false) {
+    return (
+      <DenominationInput
+        key={d.key}
+        name={d.key}
+        label={d.label}
+        value={d.value}
+        unit={d.kind}
+        bank={bank[d.key]}
+        draft={drafts[d.key]}
+        onDraftChange={(v) => setDrafts((prev) => ({ ...prev, [d.key]: v }))}
+        onCommit={() => commit(d.key)}
+        onRecall={() => recall(d.key)}
+        muted={mutedRow}
+      />
+    );
+  }
+
   return (
-    <form action={formAction} className="flex flex-1 flex-col gap-5 pb-28">
+    <form
+      action={formAction}
+      className="flex flex-1 flex-col gap-5"
+      style={{
+        paddingBottom: "calc(11rem + env(safe-area-inset-bottom, 0px))",
+      }}
+    >
       <input type="hidden" name="date" value={date} />
 
       <RunningTotalHero
@@ -60,6 +121,11 @@ export function NewSessionForm() {
         dateLabel={todayLabel()}
         total={total}
       />
+
+      <p className="px-1 text-xs text-brand-muted">
+        Count a stack, type it, tap <span className="font-bold">+</span> — it
+        adds up for you. Tap the purple number to fix a mistake.
+      </p>
 
       {state && "error" in state && (
         <p className="rounded-xl bg-brand-orange/10 px-4 py-2 text-sm font-medium text-brand-orange-dark">
@@ -77,34 +143,9 @@ export function NewSessionForm() {
           Notes
         </h2>
         <div className="flex flex-col gap-2">
-          {notes
-            .filter((d) => d.common)
-            .map((d) => (
-              <DenominationInput
-                key={d.key}
-                name={d.key}
-                label={d.label}
-                value={d.value}
-                unit="note"
-                count={counts[d.key]}
-                onChange={(v) => setCount(d.key, v)}
-              />
-            ))}
+          {notes.filter((d) => d.common).map((d) => renderRow(d))}
           {showMoreNotes &&
-            notes
-              .filter((d) => !d.common)
-              .map((d) => (
-                <DenominationInput
-                  key={d.key}
-                  name={d.key}
-                  label={d.label}
-                  value={d.value}
-                  unit="note"
-                  count={counts[d.key]}
-                  onChange={(v) => setCount(d.key, v)}
-                  muted
-                />
-              ))}
+            notes.filter((d) => !d.common).map((d) => renderRow(d, true))}
         </div>
         <button
           type="button"
@@ -120,34 +161,9 @@ export function NewSessionForm() {
           Coins
         </h2>
         <div className="flex flex-col gap-2">
-          {coins
-            .filter((d) => d.common)
-            .map((d) => (
-              <DenominationInput
-                key={d.key}
-                name={d.key}
-                label={d.label}
-                value={d.value}
-                unit="coin"
-                count={counts[d.key]}
-                onChange={(v) => setCount(d.key, v)}
-              />
-            ))}
+          {coins.filter((d) => d.common).map((d) => renderRow(d))}
           {showMoreCoins &&
-            coins
-              .filter((d) => !d.common)
-              .map((d) => (
-                <DenominationInput
-                  key={d.key}
-                  name={d.key}
-                  label={d.label}
-                  value={d.value}
-                  unit="coin"
-                  count={counts[d.key]}
-                  onChange={(v) => setCount(d.key, v)}
-                  muted
-                />
-              ))}
+            coins.filter((d) => !d.common).map((d) => renderRow(d, true))}
         </div>
         <button
           type="button"
@@ -174,7 +190,12 @@ export function NewSessionForm() {
         />
       </div>
 
-      <div className="fixed inset-x-0 bottom-16 z-10 mx-auto max-w-md px-4">
+      {/* Sits above the tab bar; the tab bar itself grows by the iPhone
+          home-indicator inset in standalone PWA mode, so this must too. */}
+      <div
+        className="fixed inset-x-0 z-10 mx-auto max-w-md px-4"
+        style={{ bottom: "calc(4.75rem + env(safe-area-inset-bottom, 0px))" }}
+      >
         <button
           type="submit"
           disabled={pending || total === 0}

@@ -3,13 +3,19 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RunningTotalHero } from "@/components/RunningTotalHero";
-import { DenominationInput } from "@/components/DenominationInput";
+import { DenominationInput, parseDraft } from "@/components/DenominationInput";
+import {
+  EMPTY_DRAFTS,
+  effectiveCounts,
+  type DenomDrafts,
+} from "@/components/NewSessionForm";
 import { updateSession } from "@/lib/actions/sessions";
 import {
   DENOMINATIONS,
   computeTotal,
   formatBaht,
   type DenomCounts,
+  type DenomKey,
 } from "@/lib/denominations";
 
 const notes = DENOMINATIONS.filter((d) => d.kind === "note");
@@ -29,7 +35,8 @@ export function EditSessionForm({
   originalTotal: number;
 }) {
   const router = useRouter();
-  const [counts, setCounts] = useState<DenomCounts>(initialCounts);
+  const [bank, setBank] = useState<DenomCounts>(initialCounts);
+  const [drafts, setDrafts] = useState<DenomDrafts>({ ...EMPTY_DRAFTS });
   const [date, setDate] = useState(initialDate);
   const [note, setNote] = useState(initialNote);
   const boundUpdateSession = updateSession.bind(null, sessionId);
@@ -38,7 +45,7 @@ export function EditSessionForm({
     undefined,
   );
 
-  const total = computeTotal(counts);
+  const total = computeTotal(effectiveCounts(bank, drafts));
   const totalChanged = total !== originalTotal;
 
   useEffect(() => {
@@ -48,12 +55,42 @@ export function EditSessionForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
-  function setCount(key: keyof DenomCounts, value: number) {
-    setCounts((prev) => ({ ...prev, [key]: value }));
+  function commit(key: DenomKey) {
+    setBank((prev) => ({ ...prev, [key]: prev[key] + parseDraft(drafts[key]) }));
+    setDrafts((prev) => ({ ...prev, [key]: "" }));
+  }
+
+  function recall(key: DenomKey) {
+    setDrafts((prev) => ({
+      ...prev,
+      [key]: String(bank[key] + parseDraft(prev[key])),
+    }));
+    setBank((prev) => ({ ...prev, [key]: 0 }));
+  }
+
+  function renderRow(d: (typeof DENOMINATIONS)[number]) {
+    return (
+      <DenominationInput
+        key={d.key}
+        name={d.key}
+        label={d.label}
+        value={d.value}
+        unit={d.kind}
+        bank={bank[d.key]}
+        draft={drafts[d.key]}
+        onDraftChange={(v) => setDrafts((prev) => ({ ...prev, [d.key]: v }))}
+        onCommit={() => commit(d.key)}
+        onRecall={() => recall(d.key)}
+      />
+    );
   }
 
   return (
-    <form action={formAction} className="flex flex-1 flex-col gap-5 pb-8">
+    <form
+      action={formAction}
+      className="flex flex-1 flex-col gap-5"
+      style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+    >
       <RunningTotalHero label="Session total" dateLabel={date} total={total} />
 
       {totalChanged && (
@@ -86,38 +123,14 @@ export function EditSessionForm({
         <h2 className="mb-2 px-1 text-sm font-semibold text-brand-muted">
           Notes
         </h2>
-        <div className="flex flex-col gap-2">
-          {notes.map((d) => (
-            <DenominationInput
-              key={d.key}
-              name={d.key}
-              label={d.label}
-              value={d.value}
-              unit="note"
-              count={counts[d.key]}
-              onChange={(v) => setCount(d.key, v)}
-            />
-          ))}
-        </div>
+        <div className="flex flex-col gap-2">{notes.map(renderRow)}</div>
       </section>
 
       <section>
         <h2 className="mb-2 px-1 text-sm font-semibold text-brand-muted">
           Coins
         </h2>
-        <div className="flex flex-col gap-2">
-          {coins.map((d) => (
-            <DenominationInput
-              key={d.key}
-              name={d.key}
-              label={d.label}
-              value={d.value}
-              unit="coin"
-              count={counts[d.key]}
-              onChange={(v) => setCount(d.key, v)}
-            />
-          ))}
-        </div>
+        <div className="flex flex-col gap-2">{coins.map(renderRow)}</div>
       </section>
 
       <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
@@ -140,14 +153,14 @@ export function EditSessionForm({
         <button
           type="button"
           onClick={() => router.push("/sessions")}
-          className="flex-1 rounded-full border border-black/10 px-6 py-3.5 text-sm font-semibold text-brand-navy"
+          className="flex-1 rounded-full border border-black/10 px-6 py-3.5 text-sm font-semibold text-brand-navy transition active:scale-[0.98]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="flex-[2] rounded-full bg-gradient-to-r from-brand-purple to-brand-orange px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-purple/20 disabled:opacity-60"
+          className="flex-[2] rounded-full bg-gradient-to-r from-brand-purple to-brand-orange px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-purple/20 transition active:scale-[0.98] disabled:opacity-60"
         >
           {pending ? "Saving…" : "Save Changes"}
         </button>
