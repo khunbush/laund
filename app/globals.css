@@ -34,6 +34,36 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Instant, native-feeling taps: kill the gray tap flash and the
+   double-tap-to-zoom delay on interactive elements. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+a,
+input,
+label {
+  touch-action: manipulation;
+}
+
+/* Keep number inputs clean (no spinner arrows shifting layout). */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
 @supports (padding: max(0px)) {
   .safe-top {
     padding-top: max(1rem, env(safe-area-inset-top));

@@ -79,6 +79,24 @@ export async function createSession(
   return { ok: true, id: session.id };
 }
 
+export async function deleteSession(id: string): Promise<SessionActionResult> {
+  if (!(await isAuthenticated())) {
+    return { ok: false, error: "Unauthorized" };
+  }
+
+  try {
+    await prisma.collectionSession.delete({ where: { id } });
+  } catch {
+    return { ok: false, error: "Session not found" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/sessions");
+  revalidatePath("/dashboard");
+
+  return { ok: true, id };
+}
+
 export async function updateSession(
   id: string,
   _prevState: SessionActionResult | undefined,

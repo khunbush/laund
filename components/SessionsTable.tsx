@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatBaht } from "@/lib/denominations";
+import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 
 export interface SessionRow {
   id: string;
@@ -22,6 +23,7 @@ function formatDate(date: Date) {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   });
 }
 
@@ -44,7 +46,13 @@ function denomSummary(session: SessionRow) {
   return parts.join("  ·  ") || "No denominations recorded";
 }
 
-export function SessionsTable({ sessions }: { sessions: SessionRow[] }) {
+export function SessionsTable({
+  sessions,
+  allowDelete = false,
+}: {
+  sessions: SessionRow[];
+  allowDelete?: boolean;
+}) {
   if (sessions.length === 0) {
     return (
       <p className="rounded-2xl bg-brand-surface p-6 text-center text-sm text-brand-muted">
@@ -56,23 +64,29 @@ export function SessionsTable({ sessions }: { sessions: SessionRow[] }) {
   return (
     <div className="flex flex-col gap-2">
       {sessions.map((session) => (
-        <Link
+        <div
           key={session.id}
-          href={`/sessions/${session.id}`}
-          className="block rounded-2xl border border-black/5 bg-brand-surface p-4 transition active:scale-[0.99]"
+          className="flex items-center gap-2 rounded-2xl border border-black/5 bg-brand-surface p-4 transition-transform duration-150 active:scale-[0.99]"
         >
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-brand-navy">
-              {formatDate(session.date)}
+          <Link
+            href={`/sessions/${session.id}`}
+            className="min-w-0 flex-1"
+            prefetch={true}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-brand-navy">
+                {formatDate(session.date)}
+              </p>
+              <p className="text-lg font-bold text-brand-purple-dark">
+                {formatBaht(session.totalBaht)}
+              </p>
+            </div>
+            <p className="mt-1 truncate text-xs text-brand-muted">
+              {denomSummary(session)}
             </p>
-            <p className="text-lg font-bold text-brand-purple-dark">
-              {formatBaht(session.totalBaht)}
-            </p>
-          </div>
-          <p className="mt-1 truncate text-xs text-brand-muted">
-            {denomSummary(session)}
-          </p>
-        </Link>
+          </Link>
+          {allowDelete && <DeleteSessionButton sessionId={session.id} />}
+        </div>
       ))}
     </div>
   );
