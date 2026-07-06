@@ -12,6 +12,9 @@ export default defineConfig({
   // runtime. Points at the direct/unpooled connection since DDL statements
   // (migrations) shouldn't go through a connection pooler like Neon's PgBouncer.
   datasource: {
-    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
+    url:
+      process.env["DIRECT_URL"] ??
+      process.env["DATABASE_URL_UNPOOLED"] ?? // set automatically by Vercel's Neon integration
+      process.env["DATABASE_URL"],
   },
 });
