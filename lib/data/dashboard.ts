@@ -43,6 +43,28 @@ async function getAllSessions() {
   });
 }
 
+export async function getUnpaidSummary() {
+  const result = await prisma.collectionSession.aggregate({
+    where: { paid: false },
+    _sum: { totalBaht: true },
+    _count: true,
+  });
+  return {
+    unpaidTotal: result._sum.totalBaht ?? 0,
+    unpaidCount: result._count,
+  };
+}
+
+const WEEKDAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
 export async function getDashboardStats() {
   const allSessions = await getAllSessions();
   const dailyTotals = toDailyTotals(allSessions);
@@ -108,7 +130,66 @@ export async function getDashboardStats() {
     totalBaht: d.totalBaht,
   }));
 
+  // Records: computed from data already in memory.
+  const bestDay = dailyTotals.reduce(
+    (best, d) => (best === null || d.totalBaht > best.totalBaht ? d : best),
+    null as { date: Date; totalBaht: number } | null,
+  );
+  const bestMonth = monthlyTotals.reduce(
+    (best, m) => (best === null || m.total > best.total ? m : best),
+    null as { month: string; total: number } | null,
+  );
+  const biggestSession = allSessions.reduce(
+    (best, s) => (best === null || s.totalBaht > best.totalBaht ? s : best),
+    null as { date: Date; totalBaht: number } | null,
+  );
+
+  // Best day of week: mean daily total per weekday (UTC — dates are date-only).
+  let bestWeekday: {
+    weekday: string;
+    avg: number;
+    pctAboveOverall: number;
+  } | null = null;
+  if (dailyTotals.length >= 8 && averagePerDay) {
+    const byWeekday = new Map<number, { sum: number; n: number }>();
+    for (const d of dailyTotals) {
+      const wd = d.date.getUTCDay();
+      const agg = byWeekday.get(wd) ?? { sum: 0, n: 0 };
+      agg.sum += d.totalBaht;
+      agg.n += 1;
+      byWeekday.set(wd, agg);
+    }
+    let top: { wd: number; avg: number } | null = null;
+    for (const [wd, agg] of byWeekday) {
+      const avg = agg.sum / agg.n;
+      if (top === null || avg > top.avg) top = { wd, avg };
+    }
+    if (top) {
+      bestWeekday = {
+        weekday: WEEKDAY_NAMES[top.wd],
+        avg: top.avg,
+        pctAboveOverall: ((top.avg - averagePerDay) / averagePerDay) * 100,
+      };
+    }
+  }
+
+  const allDailyTotals = dailyTotals.map((d) => ({
+    date: d.date.toISOString().slice(0, 10),
+    totalBaht: d.totalBaht,
+  }));
+
   return {
+    records: {
+      bestDay: bestDay
+        ? { date: bestDay.date, totalBaht: bestDay.totalBaht }
+        : null,
+      bestMonth,
+      biggestSession: biggestSession
+        ? { date: biggestSession.date, totalBaht: biggestSession.totalBaht }
+        : null,
+    },
+    bestWeekday,
+    allDailyTotals,
     totalCollected,
     sessionCount,
     dayCount,

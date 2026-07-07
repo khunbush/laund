@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { listSessions } from "@/lib/data/sessions";
+import { getUnpaidSummary } from "@/lib/data/dashboard";
 import { SessionsTable } from "@/components/SessionsTable";
 import { BottomTabBar } from "@/components/BottomTabBar";
+import { UnpaidBanner } from "@/components/UnpaidBanner";
 
 export default async function SessionsPage({
   searchParams,
@@ -11,7 +13,10 @@ export default async function SessionsPage({
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
   const pageSize = 20;
-  const { sessions, total } = await listSessions({ page, pageSize });
+  const [{ sessions, total }, unpaid] = await Promise.all([
+    listSessions({ page, pageSize }),
+    getUnpaidSummary(),
+  ]);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
@@ -25,6 +30,12 @@ export default async function SessionsPage({
           >
             ⬇︎ Export CSV
           </a>
+        </div>
+        <div className="mb-3">
+          <UnpaidBanner
+            unpaidTotal={unpaid.unpaidTotal}
+            unpaidCount={unpaid.unpaidCount}
+          />
         </div>
         <SessionsTable sessions={sessions} allowDelete />
         {totalPages > 1 && (

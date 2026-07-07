@@ -1,0 +1,85 @@
+import { formatBaht } from "@/lib/denominations";
+
+// Single-hue purple ramp, light -> dark (sequential scale for magnitude).
+const RAMP = ["#ded6ff", "#b7a6ff", "#8f76ff", "#5b3fe0"];
+const EMPTY = "rgba(0,0,0,0.045)";
+
+function rampColor(value: number, max: number): string {
+  if (value <= 0 || max <= 0) return EMPTY;
+  const step = Math.min(
+    RAMP.length - 1,
+    Math.floor((value / max) * RAMP.length),
+  );
+  return RAMP[step];
+}
+
+const DAY_HEADERS = ["M", "T", "W", "T", "F", "S", "S"];
+
+export function CalendarHeatmap({
+  year,
+  month, // 1-12
+  dailyTotals, // ISO date -> works for any range; only this month's dates are used
+}: {
+  year: number;
+  month: number;
+  dailyTotals: { date: string; totalBaht: number }[];
+}) {
+  const prefix = `${year}-${String(month).padStart(2, "0")}-`;
+  const totalsByDay = new Map<number, number>();
+  for (const d of dailyTotals) {
+    if (d.date.startsWith(prefix)) {
+      totalsByDay.set(Number(d.date.slice(8, 10)), d.totalBaht);
+    }
+  }
+  const max = Math.max(0, ...totalsByDay.values());
+
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  // Monday-start column index of the 1st (0=Mon ... 6=Sun).
+  const firstWeekday = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
+
+  const cells: (number | null)[] = [
+    ...Array.from({ length: firstWeekday }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+
+  return (
+    <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
+      <div className="grid grid-cols-7 gap-1.5">
+        {DAY_HEADERS.map((h, i) => (
+          <div
+            key={`h${i}`}
+            className="text-center text-[10px] font-semibold text-brand-muted"
+          >
+            {h}
+          </div>
+        ))}
+        {cells.map((day, i) => {
+          if (day === null) return <div key={`e${i}`} />;
+          const value = totalsByDay.get(day) ?? 0;
+          const dark = max > 0 && value / max > 0.5;
+          return (
+            <div
+              key={day}
+              title={value > 0 ? `${formatBaht(value)}` : undefined}
+              className="flex aspect-square items-center justify-center rounded-lg text-[10px] font-semibold"
+              style={{
+                backgroundColor: rampColor(value, max),
+                color: value > 0 ? (dark ? "#ffffff" : "#3d2e8f") : "#8a8a9a",
+              }}
+            >
+              {day}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex items-center justify-end gap-1.5 text-[10px] text-brand-muted">
+        less
+        <span className="h-2.5 w-2.5 rounded" style={{ backgroundColor: EMPTY }} />
+        {RAMP.map((c) => (
+          <span key={c} className="h-2.5 w-2.5 rounded" style={{ backgroundColor: c }} />
+        ))}
+        more
+      </div>
+    </div>
+  );
+}

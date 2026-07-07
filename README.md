@@ -63,6 +63,23 @@ Open the deployed URL in Safari → Share → **Add to Home Screen**. The app
 launches standalone (no browser chrome) using the icon and theme colors
 defined in `public/manifest.json`.
 
+## Optional: automatic monthly backup email
+
+A Vercel Cron job (`vercel.json`) hits `/api/backup` on the 1st of each month,
+which emails the full sessions CSV. It stays disabled until three env vars are
+set on the Vercel project:
+
+1. `RESEND_API_KEY` — free key from [resend.com](https://resend.com). Sign up
+   with the same email you want backups sent to (the default
+   `onboarding@resend.dev` sender can only deliver to the account owner).
+2. `BACKUP_EMAIL` — the destination inbox.
+3. `CRON_SECRET` — any random string (`openssl rand -hex 32`); Vercel Cron
+   automatically presents it as a bearer token so nobody else can trigger the
+   endpoint.
+
+Redeploy after setting them. Manual on-demand backups are always available via
+the "Export CSV" button in History.
+
 ## Notes on data safety
 
 - There is no delete UI for sessions — this is intentional for a financial

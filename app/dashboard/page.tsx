@@ -1,10 +1,16 @@
-import { getDashboardStats, getProjections } from "@/lib/data/dashboard";
+import {
+  getDashboardStats,
+  getProjections,
+  getUnpaidSummary,
+} from "@/lib/data/dashboard";
 import { getRecentSessions } from "@/lib/data/sessions";
 import { StatCard } from "@/components/StatCard";
 import { BarChartWrapper } from "@/components/BarChartWrapper";
 import { DonutChartWrapper } from "@/components/DonutChartWrapper";
 import { SessionsTable } from "@/components/SessionsTable";
 import { BottomTabBar } from "@/components/BottomTabBar";
+import { UnpaidBanner } from "@/components/UnpaidBanner";
+import { CalendarHeatmap } from "@/components/CalendarHeatmap";
 import { formatBaht } from "@/lib/denominations";
 import Link from "next/link";
 
@@ -25,16 +31,33 @@ function formatDate(date: Date | null) {
 }
 
 export default async function DashboardPage() {
-  const [stats, projections, recentSessions] = await Promise.all([
+  const [stats, projections, recentSessions, unpaid] = await Promise.all([
     getDashboardStats(),
     getProjections(),
     getRecentSessions(8),
+    getUnpaidSummary(),
   ]);
+
+  const now = new Date();
 
   return (
     <div className="flex min-h-screen flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-6 pb-6">
-        <h1 className="px-1 text-xl font-bold text-brand-navy">Dashboard</h1>
+        <div className="flex items-center justify-between px-1">
+          <h1 className="text-xl font-bold text-brand-navy">Dashboard</h1>
+          <Link
+            href="/report"
+            prefetch={true}
+            className="rounded-full bg-black/5 px-3.5 py-1.5 text-xs font-semibold text-brand-navy/70 transition active:scale-95"
+          >
+            Monthly report →
+          </Link>
+        </div>
+
+        <UnpaidBanner
+          unpaidTotal={unpaid.unpaidTotal}
+          unpaidCount={unpaid.unpaidCount}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <StatCard
@@ -113,6 +136,68 @@ export default async function DashboardPage() {
           daily={stats.dailySeries}
           monthly={stats.monthlyTotals}
         />
+
+        <div>
+          <h2 className="mb-2 px-1 text-sm font-semibold text-brand-navy">
+            This Month
+          </h2>
+          <CalendarHeatmap
+            year={now.getFullYear()}
+            month={now.getMonth() + 1}
+            dailyTotals={stats.allDailyTotals}
+          />
+        </div>
+
+        {(stats.records.bestDay || stats.bestWeekday) && (
+          <section className="rounded-2xl border border-black/5 bg-brand-surface p-4">
+            <h2 className="mb-3 text-sm font-semibold text-brand-navy">
+              Records 🏆
+            </h2>
+            <div className="flex flex-col gap-2.5 text-sm">
+              {stats.records.bestDay && (
+                <div className="flex items-center justify-between">
+                  <span className="text-brand-muted">Best day</span>
+                  <span className="font-semibold text-brand-navy">
+                    {formatBaht(stats.records.bestDay.totalBaht)}
+                    <span className="ml-2 text-xs font-medium text-brand-muted">
+                      {formatDate(stats.records.bestDay.date)}
+                    </span>
+                  </span>
+                </div>
+              )}
+              {stats.records.bestMonth && (
+                <div className="flex items-center justify-between">
+                  <span className="text-brand-muted">Best month</span>
+                  <span className="font-semibold text-brand-navy">
+                    {formatBaht(stats.records.bestMonth.total)}
+                    <span className="ml-2 text-xs font-medium text-brand-muted">
+                      {stats.records.bestMonth.month}
+                    </span>
+                  </span>
+                </div>
+              )}
+              {stats.records.biggestSession && (
+                <div className="flex items-center justify-between">
+                  <span className="text-brand-muted">Biggest session</span>
+                  <span className="font-semibold text-brand-navy">
+                    {formatBaht(stats.records.biggestSession.totalBaht)}
+                    <span className="ml-2 text-xs font-medium text-brand-muted">
+                      {formatDate(stats.records.biggestSession.date)}
+                    </span>
+                  </span>
+                </div>
+              )}
+              {stats.bestWeekday && (
+                <p className="mt-1 rounded-xl bg-brand-purple/8 px-3 py-2 text-xs font-medium text-brand-purple-dark">
+                  Best day of week: {stats.bestWeekday.weekday} — avg{" "}
+                  {formatBaht(stats.bestWeekday.avg)} (
+                  {stats.bestWeekday.pctAboveOverall >= 0 ? "+" : ""}
+                  {stats.bestWeekday.pctAboveOverall.toFixed(0)}% vs overall)
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
         <div>
           <h2 className="mb-2 px-1 text-sm font-semibold text-brand-navy">
