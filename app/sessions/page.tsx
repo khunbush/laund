@@ -17,7 +17,15 @@ export default async function SessionsPage({
   return (
     <div className="flex min-h-screen flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-6">
-        <h1 className="mb-4 px-1 text-xl font-bold text-brand-navy">History</h1>
+        <div className="mb-4 flex items-center justify-between px-1">
+          <h1 className="text-xl font-bold text-brand-navy">History</h1>
+          <a
+            href="/api/export"
+            className="rounded-full bg-black/5 px-3.5 py-1.5 text-xs font-semibold text-brand-navy/70 transition active:scale-95"
+          >
+            ⬇︎ Export CSV
+          </a>
+        </div>
         <SessionsTable sessions={sessions} allowDelete />
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between px-1 text-sm text-brand-muted">
