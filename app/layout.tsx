@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ClientPwaRegister } from "@/components/ClientPwaRegister";
+import { SplashScreen } from "@/components/SplashScreen";
+import { AppleSplashLinks } from "@/components/AppleSplashLinks";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -37,7 +39,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${jakarta.variable} h-full antialiased`}>
+      <head>
+        <AppleSplashLinks />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <SplashScreen />
         {children}
         <ClientPwaRegister />
       </body>

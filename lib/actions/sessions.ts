@@ -98,6 +98,7 @@ export async function setPaid(
 
   revalidatePath("/sessions");
   revalidatePath(`/sessions/${id}`);
+  revalidatePath("/dashboard");
 
   return { ok: true, id };
 }

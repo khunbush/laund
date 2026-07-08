@@ -14,10 +14,11 @@ import { CalendarHeatmap } from "@/components/CalendarHeatmap";
 import { formatBaht } from "@/lib/denominations";
 import Link from "next/link";
 
-// Always fetch fresh data — this is financial data that can also change
-// outside the app (e.g. a manual correction in the Neon console), so a
-// statically cached snapshot would be unsafe here.
-export const dynamic = "force-dynamic";
+// Cache-render for speed (instant tab switches + full prefetch), but refresh
+// every 30 min so time-relative stats like "Days Since Last" don't freeze.
+// Every mutation calls revalidatePath("/dashboard"), so data is fresh
+// immediately after any change regardless of this interval.
+export const revalidate = 1800;
 
 const CONFIDENCE_LABEL: Record<string, string> = {
   none: "Not enough data yet",

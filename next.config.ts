@@ -6,8 +6,8 @@ const nextConfig: NextConfig = {
     // tab switches are instant. Mutations still show fresh data immediately
     // because every server action calls revalidatePath, which purges this.
     staleTimes: {
-      dynamic: 30,
-      static: 60,
+      dynamic: 120,
+      static: 300,
     },
   },
 };
