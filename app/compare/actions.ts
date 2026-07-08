@@ -2,7 +2,29 @@
 
 import { revalidatePath } from "next/cache";
 import { isAuthenticated } from "@/lib/auth";
-import { importMachineCsv, type ImportSummary } from "@/lib/data/machine";
+import {
+  importMachineCsv,
+  clearMachineData,
+  type ImportSummary,
+} from "@/lib/data/machine";
+
+export type ClearResult =
+  | { ok: true; deleted: number }
+  | { ok: false; error: string };
+
+export async function clearMachineBranch(
+  branch: number,
+): Promise<ClearResult> {
+  if (!(await isAuthenticated())) {
+    return { ok: false, error: "Unauthorized" };
+  }
+  if (branch !== 1 && branch !== 2) {
+    return { ok: false, error: "Invalid branch" };
+  }
+  const deleted = await clearMachineData(branch);
+  revalidatePath("/compare");
+  return { ok: true, deleted };
+}
 
 export type UploadState =
   | { ok: true; summary: ImportSummary }

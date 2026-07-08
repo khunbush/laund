@@ -2,6 +2,7 @@ import { getComparison, type CompareRow } from "@/lib/data/compare";
 import { getMachineStatus } from "@/lib/data/machine";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { MachineUpload } from "@/components/MachineUpload";
+import { ClearMachineButton } from "@/components/ClearMachineButton";
 import { StatCard } from "@/components/StatCard";
 import { formatBaht } from "@/lib/denominations";
 
@@ -159,10 +160,10 @@ export default async function ComparePage() {
           <h2 className="mb-2 text-sm font-semibold text-brand-navy">
             Imported so far
           </h2>
-          <div className="flex flex-col gap-2 text-sm">
+          <div className="flex flex-col gap-2.5 text-sm">
             {status.map((b) => (
-              <div key={b.branch} className="flex items-center justify-between">
-                <span className="text-brand-muted">
+              <div key={b.branch} className="flex items-center justify-between gap-2">
+                <span className="min-w-0 flex-1 text-brand-muted">
                   Branch {b.branch} — {b.branch === 1 ? "washclub" : "washclub v2"}
                 </span>
                 <span className="font-semibold text-brand-navy">
@@ -170,6 +171,7 @@ export default async function ComparePage() {
                     ? `${b.dayCount} days · ${formatBaht(b.totalRevenue)}`
                     : "none yet"}
                 </span>
+                {b.dayCount > 0 && <ClearMachineButton branch={b.branch} />}
               </div>
             ))}
           </div>
