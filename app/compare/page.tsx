@@ -6,6 +6,10 @@ import { ClearMachineButton } from "@/components/ClearMachineButton";
 import { StatCard } from "@/components/StatCard";
 import { formatBaht } from "@/lib/denominations";
 
+// Always live: this page reconciles counted cash against machine data, so it
+// must reflect the exact current state (including data changed via the import
+// API or an external edit), never a cached snapshot. Transient render failures
+// are caught by app/error.tsx and the service worker's navigation fallback.
 export const dynamic = "force-dynamic";
 
 function fmtDate(iso: string) {

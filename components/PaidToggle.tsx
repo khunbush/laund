@@ -17,10 +17,15 @@ export function PaidToggle({
 
   function toggle() {
     startTransition(async () => {
-      setOptimisticPaid(!optimisticPaid);
-      const result = await setPaid(sessionId, !optimisticPaid);
-      if (result.ok) {
-        router.refresh();
+      try {
+        setOptimisticPaid(!optimisticPaid);
+        const result = await setPaid(sessionId, !optimisticPaid);
+        if (result.ok) {
+          router.refresh();
+        }
+      } catch {
+        // Optimistic state auto-reverts when the transition ends without a
+        // committed refresh; nothing else to do.
       }
     });
   }

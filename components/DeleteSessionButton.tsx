@@ -32,12 +32,19 @@ export function DeleteSessionButton({
       return;
     }
     startTransition(async () => {
-      const result = await deleteSession(sessionId);
-      if (!result.ok) return;
-      if (redirectTo) {
-        router.push(redirectTo);
-      } else {
-        router.refresh();
+      try {
+        const result = await deleteSession(sessionId);
+        if (!result.ok) {
+          setArmed(false);
+          return;
+        }
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else {
+          router.refresh();
+        }
+      } catch {
+        setArmed(false);
       }
     });
   }

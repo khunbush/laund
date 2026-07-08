@@ -23,8 +23,13 @@ export function ClearMachineButton({ branch }: { branch: number }) {
       return;
     }
     startTransition(async () => {
-      const result = await clearMachineBranch(branch);
-      if (result.ok) router.refresh();
+      try {
+        const result = await clearMachineBranch(branch);
+        if (result.ok) router.refresh();
+        else setArmed(false);
+      } catch {
+        setArmed(false);
+      }
     });
   }
 
