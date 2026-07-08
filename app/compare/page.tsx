@@ -152,7 +152,7 @@ export default async function ComparePage() {
 
             <div className="flex flex-col gap-2">
               {comparison.rows.map((row) => (
-                <CompareCard key={row.sessionId} row={row} />
+                <CompareCard key={row.dateKey} row={row} />
               ))}
             </div>
           </>
@@ -170,10 +170,19 @@ export default async function ComparePage() {
                 <span className="min-w-0 flex-1 text-brand-muted">
                   Branch {b.branch} — {b.branch === 1 ? "washclub" : "washclub v2"}
                 </span>
-                <span className="font-semibold text-brand-navy">
-                  {b.dayCount > 0
-                    ? `${b.dayCount} days · ${formatBaht(b.totalRevenue)}`
-                    : "none yet"}
+                <span className="text-right font-semibold text-brand-navy">
+                  {b.dayCount > 0 ? (
+                    <>
+                      {b.dayCount} days · {formatBaht(b.totalRevenue)}
+                      {b.lastDate && (
+                        <span className="block text-[11px] font-medium text-brand-muted">
+                          through {fmtDate(b.lastDate)}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    "none yet"
+                  )}
                 </span>
                 {b.dayCount > 0 && <ClearMachineButton branch={b.branch} />}
               </div>

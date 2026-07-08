@@ -20,7 +20,7 @@ function daysBetweenInclusive(startStr: string, endStr: string): number {
 }
 
 export interface CompareRow {
-  sessionId: string;
+  dateKey: string; // one row per collection day
   collectedDate: string; // the laundry collection date
   windowStart: string;
   windowEnd: string;
@@ -68,6 +68,18 @@ export async function getComparison(): Promise<CompareResult> {
   const hasMachineData = machineDays.length > 0;
   const earliestMachine = hasMachineData ? iso(machineDays[0].date) : null;
 
+  // Aggregate laundry collections by DAY: multiple collections on the same date
+  // are one collection for matching purposes (their counts sum). This avoids a
+  // second same-day session getting a nonsensical "day after the first" window.
+  const countedByDay = new Map<string, number>();
+  for (const s of laundry) {
+    const key = iso(s.date);
+    countedByDay.set(key, (countedByDay.get(key) ?? 0) + s.totalBaht);
+  }
+  const collectionDays = Array.from(countedByDay.entries())
+    .map(([date, counted]) => ({ date, counted }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
   // date -> per-branch revenue
   const byDate = new Map<string, { b1: number; b2: number }>();
   for (const m of machineDays) {
@@ -98,11 +110,10 @@ export async function getComparison(): Promise<CompareResult> {
   let totalCounted = 0;
   let totalMachine = 0;
 
-  for (let i = 0; i < laundry.length; i++) {
-    const s = laundry[i];
-    const collectedDate = iso(s.date);
+  for (let i = 0; i < collectionDays.length; i++) {
+    const { date: collectedDate, counted } = collectionDays[i];
     const isFirst = i === 0;
-    const prevDate = isFirst ? null : iso(laundry[i - 1].date);
+    const prevDate = isFirst ? null : collectionDays[i - 1].date;
     // Window: day after previous collection through this collection date.
     // For the first collection, start from the earliest machine data we have.
     const windowStart = prevDate
@@ -114,10 +125,9 @@ export async function getComparison(): Promise<CompareResult> {
 
     const w = sumWindow(windowStart, windowEnd);
     const machineTotal = w.b1 + w.b2;
-    const counted = s.totalBaht;
 
     rows.push({
-      sessionId: s.id,
+      dateKey: collectedDate,
       collectedDate,
       windowStart,
       windowEnd,
@@ -143,8 +153,8 @@ export async function getComparison(): Promise<CompareResult> {
   let pending: ComparePending | null = null;
   if (hasMachineData) {
     const today = iso(new Date());
-    const lastCollection = laundry.length
-      ? iso(laundry[laundry.length - 1].date)
+    const lastCollection = collectionDays.length
+      ? collectionDays[collectionDays.length - 1].date
       : null;
     const since = lastCollection ? addDays(lastCollection, 1) : earliestMachine;
     if (since && since <= today) {
