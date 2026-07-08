@@ -7,6 +7,7 @@ const TABS = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/sessions", label: "History", icon: "🧾" },
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
+  { href: "/compare", label: "Match", icon: "⚖️" },
 ];
 
 export function BottomTabBar() {

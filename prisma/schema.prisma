@@ -39,3 +39,19 @@ model CollectionSession {
 
   @@index([date])
 }
+
+/// One row per branch per day: the machine-reported revenue aggregated from an
+/// imported washclub CSV. Re-importing a date range upserts these (idempotent).
+model MachineDay {
+  id       String   @id @default(cuid())
+  branch   Int // 1 = washclub, 2 = washclub v2
+  date     DateTime @db.Date
+  revenue  Int // sum of transaction amounts (baht) for that branch/day
+  txnCount Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([branch, date])
+  @@index([date])
+}

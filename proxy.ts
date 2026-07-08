@@ -23,9 +23,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // api/backup is excluded: it is called by Vercel Cron and carries its own
-  // CRON_SECRET bearer auth instead of the passcode cookie.
+  // api/backup and api/machine-import are excluded: they are called by
+  // Vercel Cron / your export agents and carry their own bearer-token auth
+  // instead of the passcode cookie.
   matcher: [
-    "/((?!_next/static|_next/image|manifest.json|sw.js|icons|splash|favicon.ico|icon.png|apple-icon.png|api/backup).*)",
+    "/((?!_next/static|_next/image|manifest.json|sw.js|icons|splash|favicon.ico|icon.png|apple-icon.png|api/backup|api/machine-import).*)",
   ],
 };

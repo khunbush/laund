@@ -80,6 +80,31 @@ set on the Vercel project:
 Redeploy after setting them. Manual on-demand backups are always available via
 the "Export CSV" button in History.
 
+## Machine-data comparison (Match tab)
+
+The Match tab compares your counted **Laundry** cash against the revenue your
+washing machines reported, per collection window. For each laundry collection it
+sums both branches' machine revenue for the days since your previous collection
+and shows whether you counted short, exact, or over.
+
+Machine data comes from washclub CSV exports (two branches). Two ways to load it:
+
+1. **Manual upload** — on the Match tab, pick the branch and upload the CSV. The
+   format (English Gregorian for branch 1, Thai Buddhist-year for branch 2) is
+   auto-detected. Re-uploading a date range just updates those days.
+2. **Agent POST** — set `MACHINE_IMPORT_TOKEN` on the Vercel project, then have
+   an agent POST the raw CSV:
+
+   ```
+   POST https://<your-app>/api/machine-import?branch=1
+   Authorization: Bearer <MACHINE_IMPORT_TOKEN>
+   Content-Type: text/csv
+   <csv body>
+   ```
+
+   Call it once per branch. Only successful transactions are counted (branch 2's
+   `สถานะ = สำเร็จ`).
+
 ## Notes on data safety
 
 - There is no delete UI for sessions — this is intentional for a financial
