@@ -20,6 +20,17 @@ import {
   type DenomKey,
 } from "@/lib/denominations";
 
+function formatDateLabel(iso: string) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 const notes = DENOMINATIONS.filter((d) => d.kind === "note");
 const coins = DENOMINATIONS.filter((d) => d.kind === "coin");
 
@@ -96,7 +107,11 @@ export function EditSessionForm({
       className="flex flex-1 flex-col gap-5"
       style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
     >
-      <RunningTotalHero label="Session total" dateLabel={date} total={total} />
+      <RunningTotalHero
+        label="Session total"
+        dateLabel={formatDateLabel(date)}
+        total={total}
+      />
 
       <KindSelector value={kind} onChange={setKind} />
 

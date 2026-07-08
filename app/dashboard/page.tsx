@@ -31,6 +31,15 @@ function formatDate(date: Date | null) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function formatMonth(key: string) {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export default async function DashboardPage() {
   const [stats, projections, recentSessions, unpaid] = await Promise.all([
     getDashboardStats(),
@@ -172,7 +181,7 @@ export default async function DashboardPage() {
                   <span className="font-semibold text-brand-navy">
                     {formatBaht(stats.records.bestMonth.total)}
                     <span className="ml-2 text-xs font-medium text-brand-muted">
-                      {stats.records.bestMonth.month}
+                      {formatMonth(stats.records.bestMonth.month)}
                     </span>
                   </span>
                 </div>

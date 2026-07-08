@@ -151,10 +151,32 @@ export default async function ComparePage() {
             )}
 
             <div className="flex flex-col gap-2">
-              {comparison.rows.map((row) => (
-                <CompareCard key={row.dateKey} row={row} />
-              ))}
+              {comparison.rows
+                .filter((row) => row.machineTotal > 0)
+                .map((row) => (
+                  <CompareCard key={row.dateKey} row={row} />
+                ))}
             </div>
+
+            {comparison.rows.some((row) => row.machineTotal === 0) && (
+              <details className="rounded-2xl border border-black/5 bg-brand-surface">
+                <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-brand-muted">
+                  {comparison.rows.filter((r) => r.machineTotal === 0).length}{" "}
+                  earlier collection
+                  {comparison.rows.filter((r) => r.machineTotal === 0).length === 1
+                    ? ""
+                    : "s"}{" "}
+                  without machine data ▾
+                </summary>
+                <div className="flex flex-col gap-2 px-3 pb-3">
+                  {comparison.rows
+                    .filter((row) => row.machineTotal === 0)
+                    .map((row) => (
+                      <CompareCard key={row.dateKey} row={row} />
+                    ))}
+                </div>
+              </details>
+            )}
           </>
         )}
 
