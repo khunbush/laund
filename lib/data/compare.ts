@@ -3,6 +3,12 @@ import { prisma } from "@/lib/db";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+// The machines were emptied (uncounted) on 2026-07-03, the day before
+// collection tracking began. Machine data older than this exists only as a
+// historical backfill for the Branches tab and can never correspond to cash
+// that was counted, so comparison windows must not reach into it.
+const COMPARE_START = "2026-07-04";
+
 function iso(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -67,6 +73,11 @@ export async function getComparison(): Promise<CompareResult> {
 
   const hasMachineData = machineDays.length > 0;
   const earliestMachine = hasMachineData ? iso(machineDays[0].date) : null;
+  // Baseline start for windows with no previous collection to anchor on.
+  const baselineStart =
+    earliestMachine && earliestMachine > COMPARE_START
+      ? earliestMachine
+      : COMPARE_START;
 
   // Aggregate laundry collections by DAY: multiple collections on the same date
   // are one collection for matching purposes (their counts sum). This avoids a
@@ -115,11 +126,12 @@ export async function getComparison(): Promise<CompareResult> {
     const isFirst = i === 0;
     const prevDate = isFirst ? null : collectionDays[i - 1].date;
     // Window: day after previous collection through this collection date.
-    // For the first collection, start from the earliest machine data we have.
+    // For the first collection, start from the comparison baseline (earliest
+    // machine data, but never before COMPARE_START).
     const windowStart = prevDate
       ? addDays(prevDate, 1)
-      : (earliestMachine && earliestMachine <= collectedDate
-          ? earliestMachine
+      : (earliestMachine && baselineStart <= collectedDate
+          ? baselineStart
           : collectedDate);
     const windowEnd = collectedDate;
 
@@ -156,7 +168,7 @@ export async function getComparison(): Promise<CompareResult> {
     const lastCollection = collectionDays.length
       ? collectionDays[collectionDays.length - 1].date
       : null;
-    const since = lastCollection ? addDays(lastCollection, 1) : earliestMachine;
+    const since = lastCollection ? addDays(lastCollection, 1) : baselineStart;
     if (since && since <= today) {
       const w = sumWindow(since, today);
       pending = {
