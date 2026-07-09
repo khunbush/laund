@@ -14,6 +14,7 @@ export type ClearResult =
 
 export async function clearMachineBranch(
   branch: number,
+  date?: string,
 ): Promise<ClearResult> {
   if (!(await isAuthenticated())) {
     return { ok: false, error: "Unauthorized" };
@@ -21,7 +22,14 @@ export async function clearMachineBranch(
   if (branch !== 1 && branch !== 2) {
     return { ok: false, error: "Invalid branch" };
   }
-  const deleted = await clearMachineData(branch);
+  if (
+    date !== undefined &&
+    (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      Number.isNaN(Date.parse(`${date}T00:00:00.000Z`)))
+  ) {
+    return { ok: false, error: "Invalid date" };
+  }
+  const deleted = await clearMachineData(branch, date);
   revalidatePath("/compare");
   return { ok: true, deleted };
 }

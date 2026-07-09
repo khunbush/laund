@@ -48,9 +48,17 @@ export async function importMachineCsv(
   };
 }
 
-/** Delete all imported machine days for a branch. Returns rows removed. */
-export async function clearMachineData(branch: number): Promise<number> {
-  const result = await prisma.machineDay.deleteMany({ where: { branch } });
+/**
+ * Delete imported machine days for a branch — a single date (YYYY-MM-DD) if
+ * given, otherwise all of them. Returns rows removed.
+ */
+export async function clearMachineData(
+  branch: number,
+  date?: string,
+): Promise<number> {
+  const result = await prisma.machineDay.deleteMany({
+    where: { branch, ...(date ? { date: toDateOnlyUtc(date) } : {}) },
+  });
   return result.count;
 }
 

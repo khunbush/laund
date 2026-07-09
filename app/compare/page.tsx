@@ -206,7 +206,13 @@ export default async function ComparePage() {
                     "none yet"
                   )}
                 </span>
-                {b.dayCount > 0 && <ClearMachineButton branch={b.branch} />}
+                {b.dayCount > 0 && b.firstDate && b.lastDate && (
+                  <ClearMachineButton
+                    branch={b.branch}
+                    firstDate={b.firstDate}
+                    lastDate={b.lastDate}
+                  />
+                )}
               </div>
             ))}
           </div>
