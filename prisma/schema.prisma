@@ -55,3 +55,19 @@ model MachineDay {
   @@unique([branch, date])
   @@index([date])
 }
+
+/// One row per machine transaction, kept for time-of-day analysis. Only the
+/// transactional CSV formats carry timestamps, so rows accumulate from daily
+/// agent uploads (2026-07-09 onward); daily-summary backfills contribute none.
+/// occurredAt stores the report's local (ICT) wall-clock time as if it were
+/// UTC — read hours with getUTCHours, never convert.
+model MachineTxn {
+  id         String   @id @default(cuid())
+  branch     Int // 1 = washclub, 2 = washclub v2
+  occurredAt DateTime
+  amount     Int // baht
+
+  createdAt DateTime @default(now())
+
+  @@index([branch, occurredAt])
+}

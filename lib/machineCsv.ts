@@ -16,15 +16,44 @@ export interface MachineDayTotal {
   txnCount: number;
 }
 
+export interface MachineTxnRow {
+  at: string; // YYYY-MM-DDTHH:mm:ss — local (ICT) wall-clock time
+  amount: number;
+}
+
 export interface ParseResult {
   format: "branch1" | "branch2" | "summary";
   days: MachineDayTotal[];
+  // Per-transaction timestamps, only for the transactional formats (empty for
+  // daily summaries). Rows whose time cell is missing/unparseable are omitted
+  // here but still counted in the day totals.
+  txns: MachineTxnRow[];
   totalRevenue: number;
   totalTxns: number;
   skipped: number; // rows ignored (bad date/amount, or non-success)
 }
 
 const THAI_SUCCESS = "สำเร็จ";
+
+/**
+ * Parse a time cell to HH:mm:ss (24h). Accepts "11:20:58 PM" (branch 1) and
+ * "14:23" / "14:23:05" (branch 2). Returns null when unparseable.
+ */
+function parseTime(raw: string): string | null {
+  const m = raw
+    .trim()
+    .match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i);
+  if (!m) return null;
+  let hour = Number(m[1]);
+  const minute = Number(m[2]);
+  const second = m[3] ? Number(m[3]) : 0;
+  const meridiem = m[4]?.toUpperCase();
+  if (meridiem === "PM" && hour < 12) hour += 12;
+  if (meridiem === "AM" && hour === 12) hour = 0;
+  if (hour > 23 || minute > 59 || second > 59) return null;
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(hour)}:${p(minute)}:${p(second)}`;
+}
 
 function splitCsvLine(line: string): string[] {
   // Simple CSV split — these reports have no quoted/embedded commas.
@@ -74,7 +103,14 @@ export function parseMachineCsv(csvText: string): ParseResult {
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
   if (lines.length < 2) {
-    return { format: "branch1", days: [], totalRevenue: 0, totalTxns: 0, skipped: 0 };
+    return {
+      format: "branch1",
+      days: [],
+      txns: [],
+      totalRevenue: 0,
+      totalTxns: 0,
+      skipped: 0,
+    };
   }
 
   const header = splitCsvLine(lines[0]);
@@ -86,6 +122,7 @@ export function parseMachineCsv(csvText: string): ParseResult {
 
   const rows = lines.slice(1).map(splitCsvLine);
   const byDay = new Map<string, { revenue: number; txnCount: number }>();
+  const txns: MachineTxnRow[] = [];
   let skipped = 0;
 
   if (isSummary) {
@@ -136,8 +173,8 @@ export function parseMachineCsv(csvText: string): ParseResult {
         skipped++;
         continue;
       }
-      const datePart = (r[idxDate] ?? "").split(/\s+/)[0];
-      const date = parseDate(datePart, dayFirst);
+      const cellParts = (r[idxDate] ?? "").split(/\s+/);
+      const date = parseDate(cellParts[0], dayFirst);
       const amount = Number(r[idxAmount]);
       if (!date || !Number.isFinite(amount)) {
         skipped++;
@@ -147,15 +184,19 @@ export function parseMachineCsv(csvText: string): ParseResult {
       agg.revenue += Math.round(amount);
       agg.txnCount += 1;
       byDay.set(date, agg);
+      const time = parseTime(cellParts.slice(1).join(" "));
+      if (time) txns.push({ at: `${date}T${time}`, amount: Math.round(amount) });
     }
 
-    return finalize("branch2", byDay, skipped);
+    return finalize("branch2", byDay, skipped, txns);
   }
 
   // Branch 1
   const idxDate = header.findIndex((h) => h.toLowerCase() === "startdate");
+  const idxTime = header.findIndex((h) => h.toLowerCase() === "starttime");
   const idxAmount = header.findIndex((h) => h.toLowerCase() === "amount");
   const dateCol = idxDate >= 0 ? idxDate : 1;
+  const timeCol = idxTime >= 0 ? idxTime : dateCol + 1;
   const amountCol = idxAmount >= 0 ? idxAmount : header.length - 1;
   const dateParts = rows.map((r) => r[dateCol] ?? "").filter(Boolean);
   const dayFirst = detectDayFirst(dateParts, false); // US default M/D/Y
@@ -171,15 +212,18 @@ export function parseMachineCsv(csvText: string): ParseResult {
     agg.revenue += Math.round(amount);
     agg.txnCount += 1;
     byDay.set(date, agg);
+    const time = parseTime(r[timeCol] ?? "");
+    if (time) txns.push({ at: `${date}T${time}`, amount: Math.round(amount) });
   }
 
-  return finalize("branch1", byDay, skipped);
+  return finalize("branch1", byDay, skipped, txns);
 }
 
 function finalize(
   format: ParseResult["format"],
   byDay: Map<string, { revenue: number; txnCount: number }>,
   skipped: number,
+  txns: MachineTxnRow[] = [],
 ): ParseResult {
   const days = Array.from(byDay.entries())
     .map(([date, v]) => ({ date, revenue: v.revenue, txnCount: v.txnCount }))
@@ -187,6 +231,7 @@ function finalize(
   return {
     format,
     days,
+    txns,
     totalRevenue: days.reduce((s, d) => s + d.revenue, 0),
     totalTxns: days.reduce((s, d) => s + d.txnCount, 0),
     skipped,

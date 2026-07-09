@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { getBranchPerformance } from "@/lib/data/branches";
-import { BranchTrendChart, BranchWeekdayChart } from "@/components/BranchChart";
+import {
+  BranchHourlyChart,
+  BranchTrendChart,
+  BranchWeekdayChart,
+} from "@/components/BranchChart";
 import { StatCard } from "@/components/StatCard";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { formatBaht } from "@/lib/denominations";
@@ -39,21 +43,6 @@ function formatDay(iso: string) {
     day: "numeric",
     timeZone: "UTC",
   });
-}
-
-function BranchDot({ branch }: { branch: 1 | 2 }) {
-  return (
-    <span
-      aria-hidden
-      className="inline-block h-2.5 w-2.5 rounded-full"
-      style={{ backgroundColor: BRANCH_COLORS[branch] }}
-    />
-  );
-}
-
-function pctLabel(pct: number | null) {
-  if (pct === null) return null;
-  return `${pct >= 0 ? "+" : ""}${pct.toFixed(0)}% vs last month`;
 }
 
 export default async function BranchesPage({
@@ -131,41 +120,23 @@ export default async function BranchesPage({
             No machine data in {monthTitle(month)}. Data arrives from the
             Match tab&apos;s CSV uploads.
           </p>
-        ) : view === "all" ? (
-          <div className="grid grid-cols-2 gap-3">
-            {([1, 2] as const).map((b) => {
-              const s = perf.branches[b];
-              return (
-                <StatCard
-                  key={b}
-                  variant="white"
-                  icon={<BranchDot branch={b} />}
-                  label={BRANCH_NAMES[b]}
-                  value={formatBaht(s.revenue)}
-                  caption={
-                    s.activeDays > 0
-                      ? `${s.orders} orders · ${s.activeDays} days${
-                          pctLabel(s.pctChange)
-                            ? ` · ${pctLabel(s.pctChange)}`
-                            : ""
-                        }`
-                      : "no data this month"
-                  }
-                />
-              );
-            })}
-          </div>
         ) : (
           (() => {
-            const b = shownBranches[0];
-            const s = perf.branches[b];
+            const s =
+              view === "all"
+                ? perf.combined
+                : perf.branches[shownBranches[0]];
             return (
               <div className="grid grid-cols-2 gap-3">
                 <StatCard
                   variant="navy"
-                  label="Month Revenue"
+                  label={view === "all" ? "Total Revenue" : "Month Revenue"}
                   value={formatBaht(s.revenue)}
-                  caption={`${s.activeDays} days with data`}
+                  caption={
+                    view === "all"
+                      ? `B1 ${formatBaht(perf.branches[1].revenue)} · B2 ${formatBaht(perf.branches[2].revenue)}`
+                      : `${s.activeDays} days with data`
+                  }
                 />
                 <StatCard
                   variant={
@@ -221,8 +192,19 @@ export default async function BranchesPage({
           series={series}
           daily={perf.daily}
           monthly={perf.monthly}
+          stacked={view === "all"}
         />
-        <BranchWeekdayChart series={series} weekday={perf.weekday} />
+        <BranchWeekdayChart
+          series={series}
+          weekday={perf.weekday}
+          stacked={view === "all"}
+        />
+        <BranchHourlyChart
+          series={series}
+          hourly={perf.hourly}
+          since={perf.txnSince}
+          stacked={view === "all"}
+        />
       </main>
       <BottomTabBar />
     </div>
