@@ -18,14 +18,25 @@ export interface BranchPerformance {
   prevMonth: string;
   nextMonth: string;
   branches: Record<1 | 2, BranchMonthStats>;
+  // Both branches folded together (bestDay = best combined day, activeDays =
+  // days where either branch has data).
+  combined: BranchMonthStats;
   // One entry per day of the selected month that has data for either branch;
   // null = that branch has no row for the day (distinct from a real ฿0 day).
   daily: { date: string; b1: number | null; b2: number | null }[];
   monthly: { month: string; b1: number | null; b2: number | null }[];
   weekday: { dow: string; b1: number | null; b2: number | null }[];
+  // Revenue by hour of day (00-23, ICT), summed over all stored transactions.
+  // Transaction timestamps only accumulate from daily agent uploads.
+  hourly: { hour: string; b1: number | null; b2: number | null }[];
+  txnSince: string | null; // earliest transaction date, null when none stored
 }
 
 const DOW_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function iso(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
 
 function emptyStats(): BranchMonthStats {
   return {
@@ -49,10 +60,16 @@ function emptyStats(): BranchMonthStats {
 export async function getBranchPerformance(
   month: string,
 ): Promise<BranchPerformance> {
-  const rows = await prisma.machineDay.findMany({
-    orderBy: { date: "asc" },
-    select: { branch: true, date: true, revenue: true, txnCount: true },
-  });
+  const [rows, txns] = await Promise.all([
+    prisma.machineDay.findMany({
+      orderBy: { date: "asc" },
+      select: { branch: true, date: true, revenue: true, txnCount: true },
+    }),
+    prisma.machineTxn.findMany({
+      orderBy: { occurredAt: "asc" },
+      select: { branch: true, occurredAt: true, amount: true },
+    }),
+  ]);
 
   const prevMonth = shiftMonth(month, -1);
   const branches: Record<1 | 2, BranchMonthStats> = {
@@ -112,11 +129,44 @@ export async function getBranchPerformance(
         : null;
   }
 
+  const combined = emptyStats();
+  combined.hasAnyData = branches[1].hasAnyData || branches[2].hasAnyData;
+  combined.revenue = branches[1].revenue + branches[2].revenue;
+  combined.orders = branches[1].orders + branches[2].orders;
+  combined.prevRevenue = branches[1].prevRevenue + branches[2].prevRevenue;
+  combined.activeDays = dailyMap.size;
+  combined.avgPerDay =
+    combined.activeDays > 0 ? combined.revenue / combined.activeDays : null;
+  combined.pctChange =
+    combined.prevRevenue > 0
+      ? ((combined.revenue - combined.prevRevenue) / combined.prevRevenue) *
+        100
+      : null;
+  for (const [date, v] of dailyMap) {
+    const dayTotal = (v.b1 ?? 0) + (v.b2 ?? 0);
+    if (!combined.bestDay || dayTotal > combined.bestDay.revenue) {
+      combined.bestDay = { date, revenue: dayTotal };
+    }
+  }
+
+  const hourlySums: Record<1 | 2, number[]> = {
+    1: Array.from({ length: 24 }, () => 0),
+    2: Array.from({ length: 24 }, () => 0),
+  };
+  const hourlySeen: Record<1 | 2, boolean> = { 1: false, 2: false };
+  for (const t of txns) {
+    if (t.branch !== 1 && t.branch !== 2) continue;
+    const branch = t.branch as 1 | 2;
+    hourlySums[branch][t.occurredAt.getUTCHours()] += t.amount;
+    hourlySeen[branch] = true;
+  }
+
   return {
     month,
     prevMonth,
     nextMonth: shiftMonth(month, 1),
     branches,
+    combined,
     daily: Array.from(dailyMap.entries())
       .map(([date, v]) => ({ date, ...v }))
       .sort((a, b) => a.date.localeCompare(b.date)),
@@ -134,5 +184,11 @@ export async function getBranchPerformance(
           ? weekdaySums[2][i].sum / weekdaySums[2][i].count
           : null,
     })),
+    hourly: Array.from({ length: 24 }, (_, h) => ({
+      hour: String(h).padStart(2, "0"),
+      b1: hourlySeen[1] ? hourlySums[1][h] : null,
+      b2: hourlySeen[2] ? hourlySums[2][h] : null,
+    })),
+    txnSince: txns.length > 0 ? iso(txns[0].occurredAt) : null,
   };
 }

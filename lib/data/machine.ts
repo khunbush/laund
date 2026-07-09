@@ -36,6 +36,31 @@ export async function importMachineCsv(
     });
   }
 
+  // Per-transaction timestamps (transactional formats only). Replace this
+  // branch's transactions for the covered days so re-imports stay idempotent.
+  // Summary backfills carry no txns and therefore never touch existing ones.
+  if (parsed.txns.length > 0 && parsed.days.length > 0) {
+    const first = new Date(`${parsed.days[0].date}T00:00:00.000Z`);
+    const lastExclusive = new Date(
+      new Date(
+        `${parsed.days[parsed.days.length - 1].date}T00:00:00.000Z`,
+      ).getTime() +
+        24 * 60 * 60 * 1000,
+    );
+    await prisma.$transaction([
+      prisma.machineTxn.deleteMany({
+        where: { branch, occurredAt: { gte: first, lt: lastExclusive } },
+      }),
+      prisma.machineTxn.createMany({
+        data: parsed.txns.map((t) => ({
+          branch,
+          occurredAt: new Date(`${t.at}.000Z`),
+          amount: t.amount,
+        })),
+      }),
+    ]);
+  }
+
   return {
     branch,
     format: parsed.format,
@@ -50,16 +75,28 @@ export async function importMachineCsv(
 
 /**
  * Delete imported machine days for a branch — a single date (YYYY-MM-DD) if
- * given, otherwise all of them. Returns rows removed.
+ * given, otherwise all of them. Stored transactions for the same scope go
+ * with them. Returns day rows removed.
  */
 export async function clearMachineData(
   branch: number,
   date?: string,
 ): Promise<number> {
-  const result = await prisma.machineDay.deleteMany({
-    where: { branch, ...(date ? { date: toDateOnlyUtc(date) } : {}) },
-  });
-  return result.count;
+  const txnWhere = date
+    ? {
+        occurredAt: {
+          gte: toDateOnlyUtc(date),
+          lt: new Date(toDateOnlyUtc(date).getTime() + 24 * 60 * 60 * 1000),
+        },
+      }
+    : {};
+  const [days] = await prisma.$transaction([
+    prisma.machineDay.deleteMany({
+      where: { branch, ...(date ? { date: toDateOnlyUtc(date) } : {}) },
+    }),
+    prisma.machineTxn.deleteMany({ where: { branch, ...txnWhere } }),
+  ]);
+  return days.count;
 }
 
 export interface BranchStatus {

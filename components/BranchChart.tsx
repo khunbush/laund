@@ -52,11 +52,16 @@ function Bars({
   data,
   series,
   round,
+  stacked,
+  xInterval,
 }: {
   data: BranchPoint[];
   series: BranchSeries[];
   round?: boolean;
+  stacked?: boolean;
+  xInterval?: number;
 }) {
+  const stack = stacked && series.length > 1;
   return (
     <div className="h-56 w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -71,7 +76,7 @@ function Bars({
             tick={{ fontSize: 11, fill: AXIS_MUTED }}
             axisLine={{ stroke: GRIDLINE }}
             tickLine={false}
-            interval="preserveStartEnd"
+            interval={xInterval ?? "preserveStartEnd"}
           />
           <YAxis
             tick={{ fontSize: 11, fill: AXIS_MUTED }}
@@ -101,13 +106,18 @@ function Bars({
               iconSize={8}
             />
           )}
-          {series.map((s) => (
+          {series.map((s, i) => (
             <Bar
               key={s.key}
               dataKey={s.key}
               name={s.name}
               fill={s.color}
-              radius={[3, 3, 0, 0]}
+              stackId={stack ? "total" : undefined}
+              // In a stack only the top segment gets rounded corners; a thin
+              // surface-colored stroke keeps the segments visually separate.
+              radius={!stack || i === series.length - 1 ? [3, 3, 0, 0] : 0}
+              stroke={stack ? "#ffffff" : undefined}
+              strokeWidth={stack ? 1 : 0}
               maxBarSize={20}
             />
           ))}
@@ -122,10 +132,12 @@ export function BranchTrendChart({
   series,
   daily,
   monthly,
+  stacked,
 }: {
   series: BranchSeries[];
   daily: { date: string; b1: number | null; b2: number | null }[];
   monthly: { month: string; b1: number | null; b2: number | null }[];
+  stacked?: boolean;
 }) {
   const [view, setView] = useState<"daily" | "monthly">("daily");
 
@@ -170,7 +182,7 @@ export function BranchTrendChart({
           No machine data {view === "daily" ? "this month" : "yet"}.
         </p>
       ) : (
-        <Bars data={data} series={series} />
+        <Bars data={data} series={series} stacked={stacked} />
       )}
     </div>
   );
@@ -180,9 +192,11 @@ export function BranchTrendChart({
 export function BranchWeekdayChart({
   series,
   weekday,
+  stacked,
 }: {
   series: BranchSeries[];
   weekday: { dow: string; b1: number | null; b2: number | null }[];
+  stacked?: boolean;
 }) {
   const hasData = weekday.some((w) =>
     series.some((s) => (w[s.key] ?? 0) > 0),
@@ -202,7 +216,51 @@ export function BranchWeekdayChart({
           No machine data yet.
         </p>
       ) : (
-        <Bars data={data} series={series} round />
+        <Bars data={data} series={series} round stacked={stacked} />
+      )}
+    </div>
+  );
+}
+
+/** Revenue by hour of day (ICT), summed over all stored transactions. */
+export function BranchHourlyChart({
+  series,
+  hourly,
+  since,
+  stacked,
+}: {
+  series: BranchSeries[];
+  hourly: { hour: string; b1: number | null; b2: number | null }[];
+  since: string | null;
+  stacked?: boolean;
+}) {
+  const hasData =
+    since !== null &&
+    hourly.some((h) => series.some((s) => (h[s.key] ?? 0) > 0));
+  const data: BranchPoint[] = hourly.map((h) => ({ ...h, label: h.hour }));
+
+  return (
+    <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-brand-navy">Time of day</h3>
+        {hasData && (
+          <span className="text-[11px] text-brand-muted">
+            since{" "}
+            {new Date(`${since}T00:00:00Z`).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              timeZone: "UTC",
+            })}
+          </span>
+        )}
+      </div>
+      {!hasData ? (
+        <p className="py-10 text-center text-sm text-brand-muted">
+          Hourly data builds up from each new daily upload — check back after
+          the next one.
+        </p>
+      ) : (
+        <Bars data={data} series={series} stacked={stacked} xInterval={2} />
       )}
     </div>
   );
