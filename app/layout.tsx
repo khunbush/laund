@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ClientPwaRegister } from "@/components/ClientPwaRegister";
+import { WarmupPing } from "@/components/WarmupPing";
 import { SplashScreen } from "@/components/SplashScreen";
 import { AppleSplashLinks } from "@/components/AppleSplashLinks";
 import "./globals.css";
@@ -46,6 +47,7 @@ export default function RootLayout({
         <SplashScreen />
         {children}
         <ClientPwaRegister />
+        <WarmupPing />
       </body>
     </html>
   );
