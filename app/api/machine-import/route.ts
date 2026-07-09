@@ -36,6 +36,7 @@ export async function POST(request: Request) {
 
   const summary = await importMachineCsv(branch, csvText);
   revalidatePath("/compare");
+  revalidatePath("/branches");
 
   return Response.json({ ok: true, ...summary });
 }

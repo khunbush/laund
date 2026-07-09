@@ -18,3 +18,11 @@ export const OTHER_COLOR = "#898781"; // muted gray, matches chrome/ink role
 export const SEQUENTIAL_BAR_COLOR = "#7b61ff"; // brand purple, single-series bars
 export const AXIS_MUTED = "#898781";
 export const GRIDLINE = "#e1e0d9";
+
+// Branch identity colors for machine-performance charts. Fixed per entity,
+// never rank-based. Branch 2 uses the dark orange step so bars keep >= 3:1
+// contrast on the white card surface (validated pair).
+export const BRANCH_COLORS: Record<1 | 2, string> = {
+  1: "#7b61ff",
+  2: "#e65220",
+};
