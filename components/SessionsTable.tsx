@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatBaht } from "@/lib/denominations";
 import { KIND_EMOJI, KIND_LABELS, type SessionKindValue } from "@/lib/kinds";
 import { DeleteSessionButton } from "@/components/DeleteSessionButton";
+import { DenomBreakdown } from "@/components/DenomBreakdown";
 import { PaidToggle } from "@/components/PaidToggle";
 
 export interface SessionRow {
@@ -72,25 +73,21 @@ export function SessionsTable({
           key={session.id}
           className="rounded-2xl border border-black/5 bg-brand-surface p-4 transition-transform duration-150 active:scale-[0.99]"
         >
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/sessions/${session.id}`}
-              className="min-w-0 flex-1"
-              prefetch={true}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="truncate text-sm font-semibold text-brand-navy">
-                  {formatDate(session.date)}
-                </p>
-                <p className="shrink-0 text-lg font-bold text-brand-purple-dark">
-                  {formatBaht(session.totalBaht)}
-                </p>
-              </div>
-              <p className="mt-0.5 truncate text-xs text-brand-muted">
-                {denomSummary(session)}
+          <Link
+            href={`/sessions/${session.id}`}
+            className="block"
+            prefetch={true}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="truncate text-sm font-semibold text-brand-navy">
+                {formatDate(session.date)}
               </p>
-            </Link>
-          </div>
+              <p className="shrink-0 text-lg font-bold text-brand-purple-dark">
+                {formatBaht(session.totalBaht)}
+              </p>
+            </div>
+          </Link>
+          <DenomBreakdown summary={denomSummary(session)} />
           <div className="mt-2.5 flex items-center gap-2">
             <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-brand-navy/70">
               {KIND_EMOJI[session.kind]} {KIND_LABELS[session.kind]}
