@@ -8,6 +8,7 @@ const TABS = [
   { href: "/sessions", label: "History", icon: "🧾" },
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
   { href: "/compare", label: "Match", icon: "⚖️" },
+  { href: "/branches", label: "Branches", icon: "🏪" },
 ];
 
 export function BottomTabBar() {
@@ -24,7 +25,7 @@ export function BottomTabBar() {
               key={tab.href}
               href={tab.href}
               prefetch={true}
-              className={`flex flex-col items-center gap-1 rounded-xl px-4 py-1.5 text-xs font-medium transition ${
+              className={`flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition ${
                 active ? "text-brand-purple" : "text-brand-muted"
               }`}
             >

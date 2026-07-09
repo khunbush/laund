@@ -31,6 +31,7 @@ export async function clearMachineBranch(
   }
   const deleted = await clearMachineData(branch, date);
   revalidatePath("/compare");
+  revalidatePath("/branches");
   return { ok: true, deleted };
 }
 
@@ -67,5 +68,6 @@ export async function uploadMachineCsv(
   }
 
   revalidatePath("/compare");
+  revalidatePath("/branches");
   return { ok: true, summary };
 }

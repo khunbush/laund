@@ -1,11 +1,14 @@
 // Parses a washclub machine-report CSV into per-day revenue totals.
-// Two known formats are auto-detected from the header row:
+// Three known formats are auto-detected from the header row:
 //
 //  Branch 1 (washclub):    No,startDate,startTime,endDate,endTime,Amount
 //                          dates Gregorian (7/7/2026), amount = Amount
 //  Branch 2 (washclub v2): เลขอ้างอิง,เวลาที่ทำรายการ,ประเภทงาน,เครื่อง/พนักงาน,สถานะ,ยอดชำระ,ชำระด้วย
 //                          datetime with Buddhist year (7/7/2569), amount = ยอดชำระ,
 //                          only rows with สถานะ = สำเร็จ (success) count.
+//  Daily summary:          Date / วันที่, ..., Total / รวม, Orders / จำนวนออเดอร์, ...
+//                          one pre-aggregated row per day (used for historical
+//                          backfills); revenue = Total column, txnCount = Orders.
 
 export interface MachineDayTotal {
   date: string; // YYYY-MM-DD
@@ -14,7 +17,7 @@ export interface MachineDayTotal {
 }
 
 export interface ParseResult {
-  format: "branch1" | "branch2";
+  format: "branch1" | "branch2" | "summary";
   days: MachineDayTotal[];
   totalRevenue: number;
   totalTxns: number;
@@ -76,10 +79,47 @@ export function parseMachineCsv(csvText: string): ParseResult {
 
   const header = splitCsvLine(lines[0]);
   const isBranch2 = header.some((h) => h.includes("ยอดชำระ"));
+  const isSummary =
+    !isBranch2 &&
+    header.some((h) => /total|รวม/i.test(h)) &&
+    header.some((h) => /order|ออเดอร์/i.test(h));
 
   const rows = lines.slice(1).map(splitCsvLine);
   const byDay = new Map<string, { revenue: number; txnCount: number }>();
   let skipped = 0;
+
+  if (isSummary) {
+    const idxHeader = (re: RegExp, fallback: number) => {
+      const i = header.findIndex((h) => re.test(h));
+      return i >= 0 ? i : fallback;
+    };
+    const idxDate = idxHeader(/date|วันที่/i, 0);
+    const idxRevenue = idxHeader(/total|รวม/i, 1);
+    const idxOrders = idxHeader(/order|ออเดอร์/i, 2);
+    const dayFirst = detectDayFirst(
+      rows.map((r) => r[idxDate] ?? "").filter(Boolean),
+      true,
+    );
+
+    for (const r of rows) {
+      const raw = (r[idxDate] ?? "").split(/\s+/)[0];
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(raw)
+        ? raw
+        : parseDate(raw, dayFirst);
+      const revenue = Number(r[idxRevenue]);
+      const orders = Number(r[idxOrders]);
+      if (!date || !Number.isFinite(revenue)) {
+        skipped++;
+        continue;
+      }
+      const agg = byDay.get(date) ?? { revenue: 0, txnCount: 0 };
+      agg.revenue += Math.round(revenue);
+      agg.txnCount += Number.isFinite(orders) ? Math.round(orders) : 0;
+      byDay.set(date, agg);
+    }
+
+    return finalize("summary", byDay, skipped);
+  }
 
   if (isBranch2) {
     // columns by header name
@@ -137,7 +177,7 @@ export function parseMachineCsv(csvText: string): ParseResult {
 }
 
 function finalize(
-  format: "branch1" | "branch2",
+  format: ParseResult["format"],
   byDay: Map<string, { revenue: number; txnCount: number }>,
   skipped: number,
 ): ParseResult {
