@@ -66,11 +66,13 @@ function CompareCard({ row }: { row: CompareRow }) {
       <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
         <div>
           <p className="text-xs text-brand-muted">You counted</p>
-          <p className="font-serif font-normal text-brand-navy">{formatBaht(row.counted)}</p>
+          <p className="font-serif text-xl leading-6 font-normal text-brand-navy">
+            {formatBaht(row.counted)}
+          </p>
         </div>
         <div>
           <p className="text-xs text-brand-muted">Machines say</p>
-          <p className="font-serif font-normal text-brand-purple-dark">
+          <p className="font-serif text-xl leading-6 font-normal text-brand-purple-dark">
             {noData ? "—" : formatBaht(row.machineTotal)}
           </p>
         </div>

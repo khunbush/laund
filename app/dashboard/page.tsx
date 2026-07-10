@@ -128,7 +128,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-brand-muted">Projected next collection</p>
-                <p className="font-serif text-lg font-normal text-brand-purple-dark">
+                <p className="font-serif text-2xl leading-7 font-normal text-brand-purple-dark">
                   {formatBaht(projections.projectedNextSessionAmount ?? 0)}
                 </p>
                 <p className="text-xs text-brand-muted">
@@ -137,7 +137,7 @@ export default async function DashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-brand-muted">Projected month-end</p>
-                <p className="font-serif text-lg font-normal text-brand-orange-dark">
+                <p className="font-serif text-2xl leading-7 font-normal text-brand-orange-dark">
                   {formatBaht(projections.projectedMonthEndTotal)}
                 </p>
                 <p className="text-xs text-brand-muted">
@@ -173,7 +173,7 @@ export default async function DashboardPage() {
               {stats.records.bestDay && (
                 <div className="flex items-center justify-between">
                   <span className="text-brand-muted">Best day</span>
-                  <span className="font-serif font-normal text-brand-navy">
+                  <span className="font-serif text-xl leading-5 font-normal text-brand-navy">
                     {formatBaht(stats.records.bestDay.totalBaht)}
                     <span className="ml-2 font-sans text-xs font-medium text-brand-muted">
                       {formatDate(stats.records.bestDay.date)}
@@ -184,7 +184,7 @@ export default async function DashboardPage() {
               {stats.records.bestMonth && (
                 <div className="flex items-center justify-between">
                   <span className="text-brand-muted">Best month</span>
-                  <span className="font-serif font-normal text-brand-navy">
+                  <span className="font-serif text-xl leading-5 font-normal text-brand-navy">
                     {formatBaht(stats.records.bestMonth.total)}
                     <span className="ml-2 font-sans text-xs font-medium text-brand-muted">
                       {formatMonth(stats.records.bestMonth.month)}
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
               {stats.records.biggestSession && (
                 <div className="flex items-center justify-between">
                   <span className="text-brand-muted">Biggest session</span>
-                  <span className="font-serif font-normal text-brand-navy">
+                  <span className="font-serif text-xl leading-5 font-normal text-brand-navy">
                     {formatBaht(stats.records.biggestSession.totalBaht)}
                     <span className="ml-2 font-sans text-xs font-medium text-brand-muted">
                       {formatDate(stats.records.biggestSession.date)}

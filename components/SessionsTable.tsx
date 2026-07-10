@@ -82,7 +82,7 @@ export function SessionsTable({
               <p className="truncate text-sm font-semibold text-brand-navy">
                 {formatDate(session.date)}
               </p>
-              <p className="shrink-0 font-serif text-lg font-normal text-brand-purple-dark">
+              <p className="shrink-0 font-serif text-2xl leading-6 font-normal text-brand-purple-dark">
                 {formatBaht(session.totalBaht)}
               </p>
             </div>

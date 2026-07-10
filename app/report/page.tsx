@@ -125,7 +125,7 @@ export default async function ReportPage({
                     <span className="text-brand-muted">
                       {KIND_EMOJI[k]} {KIND_LABELS[k]}
                     </span>
-                    <span className="font-serif font-normal text-brand-navy">
+                    <span className="font-serif text-xl leading-5 font-normal text-brand-navy">
                       {formatBaht(report.byKind[k])}
                     </span>
                   </div>
