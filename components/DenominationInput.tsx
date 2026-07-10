@@ -61,7 +61,7 @@ export function DenominationInput({
           {unit === "note" ? "Banknote" : "Coin"} · ฿{value}
         </p>
         <div className="flex items-center gap-2">
-          <p className="font-serif text-sm text-brand-navy">
+          <p className="font-serif text-lg leading-6 text-brand-navy">
             {formatBaht(subtotal)}
           </p>
           {bank > 0 && (

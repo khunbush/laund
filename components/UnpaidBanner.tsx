@@ -18,7 +18,7 @@ export function UnpaidBanner({
   return (
     <div className="flex items-center justify-between rounded-2xl bg-brand-purple/10 px-4 py-3">
       <div>
-        <p className="font-serif text-lg font-normal text-brand-purple-dark">
+        <p className="font-serif text-2xl leading-7 font-normal text-brand-purple-dark">
           {formatBaht(unpaidTotal)}
         </p>
         <p className="text-xs font-medium text-brand-purple-dark/80">
