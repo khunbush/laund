@@ -75,7 +75,14 @@ function parseDate(datePart: string, dayFirst: boolean): string | null {
   const day = dayFirst ? a : b;
   const month = dayFirst ? b : a;
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  // Reject impossible calendar dates (Feb 31, 2-digit years, …) so bad rows
+  // are skipped instead of an Invalid Date crashing the DB write later.
+  const parsed = new Date(`${iso}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== iso) {
+    return null;
+  }
+  return iso;
 }
 
 /**

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { DENOMINATIONS } from "@/lib/denominations";
 import { DENOM_COLORS, OTHER_COLOR } from "@/lib/chartColors";
 import { computeProjections } from "@/lib/projections";
+import { ictNow, todayIct } from "@/lib/ict";
 
 /**
  * Group sessions into per-day totals (multiple same-day sessions of different
@@ -75,10 +76,13 @@ export async function getDashboardStats() {
   const averagePerDay = dayCount > 0 ? totalCollected / dayCount : null;
 
   const lastDay = dailyTotals[dailyTotals.length - 1] ?? null;
-  const today = new Date();
+  // Whole days between the stored date-only value and today in Thailand, so a
+  // collection made this morning reads 0 all day (not 1 after the UTC cutoff).
+  const todayMidnight = new Date(`${todayIct()}T00:00:00.000Z`);
   const daysSinceLastCollection = lastDay
     ? Math.round(
-        (today.getTime() - lastDay.date.getTime()) / (1000 * 60 * 60 * 24),
+        (todayMidnight.getTime() - lastDay.date.getTime()) /
+          (1000 * 60 * 60 * 24),
       )
     : null;
 
@@ -118,7 +122,8 @@ export async function getDashboardStats() {
 
   const monthlyTotalsMap = new Map<string, number>();
   for (const s of allSessions) {
-    const key = `${s.date.getFullYear()}-${String(s.date.getMonth() + 1).padStart(2, "0")}`;
+    // Dates are stored as UTC date-only values; bucket by UTC, never server-local.
+    const key = s.date.toISOString().slice(0, 7);
     monthlyTotalsMap.set(key, (monthlyTotalsMap.get(key) ?? 0) + s.totalBaht);
   }
   const monthlyTotals = Array.from(monthlyTotalsMap.entries()).map(
@@ -209,5 +214,5 @@ export async function getProjections() {
     select: { date: true, totalBaht: true },
   });
   const dailyTotals = toDailyTotals(allSessions);
-  return computeProjections(dailyTotals.slice(-10), new Date());
+  return computeProjections(dailyTotals.slice(-10), ictNow());
 }

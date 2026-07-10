@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
@@ -52,10 +53,20 @@ export async function isAuthenticated(): Promise<boolean> {
   return verifyToken(cookieStore.get(SESSION_COOKIE)?.value);
 }
 
+/**
+ * Constant-time string comparison for secrets (passcode, bearer tokens).
+ * Hashing first equalizes lengths so timingSafeEqual never throws.
+ */
+export function secretsMatch(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
+
 export function verifyPasscode(input: string): boolean {
   const passcode = process.env.APP_PASSCODE;
   if (!passcode) {
     throw new Error("APP_PASSCODE environment variable is not set");
   }
-  return input === passcode;
+  return secretsMatch(input, passcode);
 }

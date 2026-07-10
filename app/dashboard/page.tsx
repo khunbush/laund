@@ -13,6 +13,7 @@ import { UnpaidBanner } from "@/components/UnpaidBanner";
 import { CalendarHeatmap } from "@/components/CalendarHeatmap";
 import { formatBaht } from "@/lib/denominations";
 import Link from "next/link";
+import { ictNow } from "@/lib/ict";
 
 // Cache-render for speed (instant tab switches + full prefetch), but refresh
 // every 30 min so time-relative stats like "Days Since Last" don't freeze.
@@ -28,7 +29,11 @@ const CONFIDENCE_LABEL: Record<string, string> = {
 
 function formatDate(date: Date | null) {
   if (!date) return "—";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function formatMonth(key: string) {
@@ -48,7 +53,8 @@ export default async function DashboardPage() {
     getUnpaidSummary(),
   ]);
 
-  const now = new Date();
+  // Thailand's "now" — read with UTC getters (see lib/ict.ts).
+  const now = ictNow();
 
   return (
     <div className="flex min-h-screen flex-1 flex-col bg-background">
@@ -152,8 +158,8 @@ export default async function DashboardPage() {
             This Month
           </h2>
           <CalendarHeatmap
-            year={now.getFullYear()}
-            month={now.getMonth() + 1}
+            year={now.getUTCFullYear()}
+            month={now.getUTCMonth() + 1}
             dailyTotals={stats.allDailyTotals}
           />
         </div>

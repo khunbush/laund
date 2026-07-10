@@ -1,4 +1,5 @@
 import { buildSessionsCsv } from "@/lib/csv";
+import { secretsMatch } from "@/lib/auth";
 
 /**
  * Monthly CSV backup, triggered by Vercel Cron (see vercel.json). Vercel
@@ -11,7 +12,8 @@ export async function GET(request: Request) {
   if (!cronSecret) {
     return new Response("CRON_SECRET not configured", { status: 503 });
   }
-  if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+  const bearer = request.headers.get("authorization");
+  if (!bearer || !secretsMatch(bearer, `Bearer ${cronSecret}`)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

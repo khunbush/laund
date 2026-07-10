@@ -9,6 +9,7 @@ import { StatCard } from "@/components/StatCard";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { formatBaht } from "@/lib/denominations";
 import { BRANCH_COLORS } from "@/lib/chartColors";
+import { currentMonthIct } from "@/lib/ict";
 
 // Always live: this page reads the machine data that the Match tab's uploads
 // maintain, so it must reflect the exact current state, never a cached
@@ -21,11 +22,6 @@ const BRANCH_NAMES: Record<1 | 2, string> = {
 };
 
 type View = "all" | "1" | "2";
-
-function currentMonth() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
 
 function monthTitle(month: string) {
   const [y, m] = month.split("-").map(Number);
@@ -53,7 +49,7 @@ export default async function BranchesPage({
   const { month: monthParam, view: viewParam } = await searchParams;
   const month = /^\d{4}-\d{2}$/.test(monthParam ?? "")
     ? monthParam!
-    : currentMonth();
+    : currentMonthIct();
   const view: View =
     viewParam === "1" || viewParam === "2" ? viewParam : "all";
 
