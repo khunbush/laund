@@ -15,14 +15,15 @@ export const DENOM_COLORS: Partial<Record<DenomKey, string>> = {
 
 export const OTHER_COLOR = "#898781"; // muted gray, matches chrome/ink role
 
-export const SEQUENTIAL_BAR_COLOR = "#7b61ff"; // brand purple, single-series bars
-export const AXIS_MUTED = "#898781";
-export const GRIDLINE = "#e1e0d9";
+export const SEQUENTIAL_BAR_COLOR = "#b1471e"; // terracotta, single-series bars
+export const AXIS_MUTED = "#8a7d68";
+export const GRIDLINE = "#ddd0b8";
 
 // Branch identity colors for machine-performance charts. Fixed per entity,
-// never rank-based. Branch 2 uses the dark orange step so bars keep >= 3:1
-// contrast on the white card surface (validated pair).
+// never rank-based. Terracotta / forest pair; the green sits slightly above
+// the theme's status green so it clears the categorical chroma floor and
+// keeps protan ΔE > 12 against terracotta (validated pair).
 export const BRANCH_COLORS: Record<1 | 2, string> = {
-  1: "#7b61ff",
-  2: "#e65220",
+  1: "#b1471e",
+  2: "#2f7040",
 };

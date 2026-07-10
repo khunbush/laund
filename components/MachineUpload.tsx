@@ -56,7 +56,7 @@ export function MachineUpload() {
         </p>
       )}
       {state && state.ok && (
-        <p className="mt-3 rounded-xl bg-[#0ca30c]/10 px-3 py-2 text-xs font-medium text-[#0a7d0a]">
+        <p className="mt-3 rounded-xl bg-brand-green/10 px-3 py-2 text-xs font-medium text-brand-green-dark">
           Imported branch {state.summary.branch}:{" "}
           {state.summary.daysImported} day
           {state.summary.daysImported === 1 ? "" : "s"} ·{" "}

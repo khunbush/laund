@@ -116,7 +116,7 @@ function Bars({
               // In a stack only the top segment gets rounded corners; a thin
               // surface-colored stroke keeps the segments visually separate.
               radius={!stack || i === series.length - 1 ? [3, 3, 0, 0] : 0}
-              stroke={stack ? "#ffffff" : undefined}
+              stroke={stack ? "#fbf7ee" : undefined}
               strokeWidth={stack ? 1 : 0}
               maxBarSize={20}
             />

@@ -71,7 +71,7 @@ export function SessionsTable({
       {sessions.map((session) => (
         <div
           key={session.id}
-          className="rounded-2xl border border-black/5 bg-brand-surface p-4 transition-transform duration-150 active:scale-[0.99]"
+          className="rounded-2xl border border-black/5 bg-brand-surface p-4 transition-transform active:scale-[0.99]"
         >
           <Link
             href={`/sessions/${session.id}`}
@@ -82,7 +82,7 @@ export function SessionsTable({
               <p className="truncate text-sm font-semibold text-brand-navy">
                 {formatDate(session.date)}
               </p>
-              <p className="shrink-0 text-lg font-bold text-brand-purple-dark">
+              <p className="shrink-0 font-serif text-lg font-normal text-brand-purple-dark">
                 {formatBaht(session.totalBaht)}
               </p>
             </div>

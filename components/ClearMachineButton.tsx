@@ -66,14 +66,14 @@ export function ClearMachineButton({
         onClick={toggle}
         aria-expanded={open}
         aria-label={`Clear branch ${branch} data`}
-        className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all duration-150 active:scale-95 ${
+        className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all active:scale-95 ${
           open ? "bg-brand-navy text-white" : "bg-black/5 text-brand-muted"
         }`}
       >
         {open ? "Close" : "Clear"}
       </button>
       {open && (
-        <div className="absolute bottom-full right-0 z-20 mb-2 flex w-60 flex-col gap-2 rounded-2xl border border-black/10 bg-white p-3 shadow-xl">
+        <div className="absolute bottom-full right-0 z-20 mb-2 flex w-60 flex-col gap-2 rounded-2xl border border-black/10 bg-brand-surface p-3 shadow-xl">
           <label
             htmlFor={`clear-date-${branch}`}
             className="text-[11px] font-semibold text-brand-muted"
@@ -96,7 +96,7 @@ export function ClearMachineButton({
             type="button"
             onClick={() => clear(date)}
             disabled={pending || !date}
-            className="rounded-full bg-brand-navy px-3 py-2 text-[11px] font-semibold text-white transition-all duration-150 active:scale-95 disabled:opacity-50"
+            className="rounded-full bg-brand-navy px-3 py-2 text-[11px] font-semibold text-white transition-all active:scale-95 disabled:opacity-50"
           >
             {pending ? "Clearing…" : "Clear this day"}
           </button>
@@ -105,7 +105,7 @@ export function ClearMachineButton({
             type="button"
             onClick={() => (armedAll ? clear() : setArmedAll(true))}
             disabled={pending}
-            className={`rounded-full px-3 py-2 text-[11px] font-semibold transition-all duration-150 active:scale-95 disabled:opacity-50 ${
+            className={`rounded-full px-3 py-2 text-[11px] font-semibold transition-all active:scale-95 disabled:opacity-50 ${
               armedAll
                 ? "bg-brand-orange text-white shadow-md shadow-brand-orange/30"
                 : "bg-black/5 text-brand-muted"
@@ -118,7 +118,7 @@ export function ClearMachineButton({
                 : "Clear everything"}
           </button>
           {error && (
-            <p className="text-[11px] font-semibold text-[#c02f2f]">{error}</p>
+            <p className="text-[11px] font-semibold text-brand-purple-dark">{error}</p>
           )}
         </div>
       )}

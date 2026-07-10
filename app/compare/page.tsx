@@ -23,20 +23,20 @@ function fmtDate(iso: string) {
 function DiffBadge({ diff }: { diff: number }) {
   if (diff === 0) {
     return (
-      <span className="rounded-full bg-[#0ca30c]/12 px-2.5 py-1 text-xs font-bold text-[#0a7d0a]">
+      <span className="rounded-full bg-brand-green/15 px-2.5 py-1 text-xs font-bold text-brand-green-dark">
         Exact match
       </span>
     );
   }
   if (diff > 0) {
     return (
-      <span className="rounded-full bg-[#0ca30c]/12 px-2.5 py-1 text-xs font-bold text-[#0a7d0a]">
+      <span className="rounded-full bg-brand-green/15 px-2.5 py-1 text-xs font-bold text-brand-green-dark">
         +{formatBaht(diff)} over
       </span>
     );
   }
   return (
-    <span className="rounded-full bg-[#d03b3b]/12 px-2.5 py-1 text-xs font-bold text-[#c02f2f]">
+    <span className="rounded-full bg-brand-purple/15 px-2.5 py-1 text-xs font-bold text-brand-purple-dark">
       Short {formatBaht(Math.abs(diff))}
     </span>
   );
@@ -66,11 +66,11 @@ function CompareCard({ row }: { row: CompareRow }) {
       <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
         <div>
           <p className="text-xs text-brand-muted">You counted</p>
-          <p className="font-bold text-brand-navy">{formatBaht(row.counted)}</p>
+          <p className="font-serif font-normal text-brand-navy">{formatBaht(row.counted)}</p>
         </div>
         <div>
           <p className="text-xs text-brand-muted">Machines say</p>
-          <p className="font-bold text-brand-purple-dark">
+          <p className="font-serif font-normal text-brand-purple-dark">
             {noData ? "—" : formatBaht(row.machineTotal)}
           </p>
         </div>

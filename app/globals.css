@@ -1,17 +1,23 @@
 @import "tailwindcss";
 
+/* "Ledger" theme: warm paper-ledger palette. Variable NAMES are kept from the
+   original navy/purple scheme so existing utility classes keep working —
+   brand-purple now renders terracotta, brand-orange renders clay, brand-navy
+   renders espresso ink. */
 :root {
-  --background: #f2f2f7;
-  --foreground: #14142b;
+  --background: #eae0cd;
+  --foreground: #2c2418;
 
-  --brand-navy: #14142b;
-  --brand-navy-soft: #1f1f3d;
-  --brand-purple: #7b61ff;
-  --brand-purple-dark: #5b3fe0;
-  --brand-orange: #ff6b35;
-  --brand-orange-dark: #e65220;
-  --brand-surface: #ffffff;
-  --brand-muted: #8a8a9a;
+  --brand-navy: #2c2418;
+  --brand-navy-soft: #3a3020;
+  --brand-purple: #b1471e;
+  --brand-purple-dark: #8a3312;
+  --brand-orange: #c47d43;
+  --brand-orange-dark: #a35f2a;
+  --brand-green: #3f6b45;
+  --brand-green-dark: #2f5236;
+  --brand-surface: #fbf7ee;
+  --brand-muted: #8a7d68;
 }
 
 @theme inline {
@@ -23,9 +29,28 @@
   --color-brand-purple-dark: var(--brand-purple-dark);
   --color-brand-orange: var(--brand-orange);
   --color-brand-orange-dark: var(--brand-orange-dark);
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-dark: var(--brand-green-dark);
   --color-brand-surface: var(--brand-surface);
   --color-brand-muted: var(--brand-muted);
   --font-sans: var(--font-jakarta);
+  --font-serif: var(--font-serif);
+
+  /* Ledger radii: slightly squarer than Tailwind defaults. */
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-2xl: 14px;
+  --radius-3xl: 20px;
+
+  /* Warm-tinted shadows (were neutral/purple-tinted). */
+  --shadow-sm: 0 1px 2px rgba(60, 50, 35, 0.1);
+  --shadow-md: 0 4px 10px -2px rgba(60, 50, 35, 0.14);
+  --shadow-lg: 0 8px 18px -4px rgba(60, 50, 35, 0.18);
+  --shadow-xl: 0 14px 30px -6px rgba(44, 36, 24, 0.28);
+
+  /* Slightly slower, gentler motion. */
+  --default-transition-duration: 260ms;
+  --default-transition-timing-function: cubic-bezier(0.34, 0.9, 0.4, 1);
 }
 
 body {

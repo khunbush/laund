@@ -19,7 +19,7 @@ export function KindSelector({
             key={k.value}
             type="button"
             onClick={() => onChange(k.value)}
-            className={`flex-1 rounded-full px-2 py-2 text-xs font-semibold transition-all duration-150 active:scale-95 ${
+            className={`flex-1 rounded-full px-2 py-2 text-xs font-semibold transition-all active:scale-95 ${
               active
                 ? "bg-brand-surface text-brand-navy shadow-sm"
                 : "text-brand-muted"
