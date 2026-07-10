@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db";
+import { todayIct } from "@/lib/ict";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -164,7 +165,7 @@ export async function getComparison(): Promise<CompareResult> {
   // Pending: machine revenue since the last collection that you haven't counted yet.
   let pending: ComparePending | null = null;
   if (hasMachineData) {
-    const today = iso(new Date());
+    const today = todayIct();
     const lastCollection = collectionDays.length
       ? collectionDays[collectionDays.length - 1].date
       : null;

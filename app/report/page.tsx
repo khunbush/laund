@@ -5,15 +5,11 @@ import { StatCard } from "@/components/StatCard";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { formatBaht } from "@/lib/denominations";
 import { KIND_EMOJI, KIND_LABELS, type SessionKindValue } from "@/lib/kinds";
+import { currentMonthIct } from "@/lib/ict";
 
 export const dynamic = "force-dynamic";
 
 const KIND_ORDER: SessionKindValue[] = ["LAUNDRY", "SNOOKER", "LUMP_SUM"];
-
-function currentMonth() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
 
 function monthTitle(month: string) {
   const [y, m] = month.split("-").map(Number);
@@ -41,7 +37,7 @@ export default async function ReportPage({
   const { month: monthParam } = await searchParams;
   const month = /^\d{4}-\d{2}$/.test(monthParam ?? "")
     ? monthParam!
-    : currentMonth();
+    : currentMonthIct();
 
   const report = await getMonthlyReport(month);
   const [year, monthNum] = month.split("-").map(Number);

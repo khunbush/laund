@@ -22,12 +22,14 @@ function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / MS_PER_DAY);
 }
 
+// UTC getters: `today` arrives ICT-shifted (see lib/ict.ts) and session dates
+// are stored as UTC date-only values, so month boundaries must be UTC too.
 function startOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
 }
 
 function endOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
 }
 
 /**
