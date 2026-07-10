@@ -19,7 +19,7 @@ export function RunningTotalHero({
           {dateLabel}
         </span>
       </div>
-      <p className="relative mt-3 text-4xl font-extrabold tracking-tight">
+      <p className="relative mt-3 font-serif text-4xl font-normal tracking-tight">
         {formatBaht(total)}
       </p>
     </div>

@@ -8,7 +8,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-purple to-brand-orange text-2xl font-bold text-white">
             ฿
           </div>
-          <h1 className="text-2xl font-bold text-brand-navy">Laund</h1>
+          <h1 className="font-serif text-3xl font-normal text-brand-navy">Laund</h1>
           <p className="mt-1 text-sm text-brand-muted">
             Enter your passcode to continue
           </p>

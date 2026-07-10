@@ -30,7 +30,13 @@ export function StatCard({
         </p>
         {icon}
       </div>
-      <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
+      <p
+        className={`mt-2 text-2xl tracking-tight ${
+          value.includes("฿") ? "font-serif font-normal" : "font-bold"
+        }`}
+      >
+        {value}
+      </p>
       {caption && (
         <p className={`mt-1 text-xs ${isDark ? "text-white/60" : "text-brand-muted"}`}>
           {caption}

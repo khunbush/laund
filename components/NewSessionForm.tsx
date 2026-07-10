@@ -130,7 +130,7 @@ export function NewSessionForm() {
 
       <p className="px-1 text-xs text-brand-muted">
         Count a stack, type it, tap <span className="font-bold">+</span> — it
-        adds up for you. Tap the purple number to fix a mistake.
+        adds up for you. Tap the orange number to fix a mistake.
       </p>
 
       {state && "error" in state && (

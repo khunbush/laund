@@ -55,7 +55,7 @@ export function DeleteSessionButton({
       onClick={handleClick}
       disabled={pending}
       aria-label={armed ? "Confirm delete" : "Delete session"}
-      className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold transition-all duration-150 active:scale-95 disabled:opacity-50 ${
+      className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold transition-all active:scale-95 disabled:opacity-50 ${
         armed
           ? "bg-brand-orange text-white shadow-md shadow-brand-orange/30"
           : "bg-black/5 text-brand-muted"

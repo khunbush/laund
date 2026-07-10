@@ -1,8 +1,8 @@
 import { formatBaht } from "@/lib/denominations";
 
-// Single-hue purple ramp, light -> dark (sequential scale for magnitude).
-const RAMP = ["#ded6ff", "#b7a6ff", "#8f76ff", "#5b3fe0"];
-const EMPTY = "rgba(0,0,0,0.045)";
+// Warm sand->terracotta ramp, light -> dark (sequential scale for magnitude).
+const RAMP = ["#e6d3b3", "#d8ad7f", "#c47d43", "#b1471e"];
+const EMPTY = "rgba(60,50,35,0.06)";
 
 function rampColor(value: number, max: number): string {
   if (value <= 0 || max <= 0) return EMPTY;
@@ -64,7 +64,7 @@ export function CalendarHeatmap({
               className="flex aspect-square items-center justify-center rounded-lg text-[10px] font-semibold"
               style={{
                 backgroundColor: rampColor(value, max),
-                color: value > 0 ? (dark ? "#ffffff" : "#3d2e8f") : "#8a8a9a",
+                color: value > 0 ? (dark ? "#fbf7ee" : "#5c3419") : "#8a7d68",
               }}
             >
               {day}

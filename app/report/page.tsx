@@ -129,7 +129,7 @@ export default async function ReportPage({
                     <span className="text-brand-muted">
                       {KIND_EMOJI[k]} {KIND_LABELS[k]}
                     </span>
-                    <span className="font-semibold text-brand-navy">
+                    <span className="font-serif font-normal text-brand-navy">
                       {formatBaht(report.byKind[k])}
                     </span>
                   </div>
@@ -144,22 +144,22 @@ export default async function ReportPage({
               <div className="mb-2 flex h-3 overflow-hidden rounded-full bg-black/5">
                 {report.paidTotal > 0 && (
                   <div
-                    className="bg-[#0ca30c]"
+                    className="bg-brand-green"
                     style={{ width: `${paidPct}%` }}
                   />
                 )}
                 {report.unpaidTotal > 0 && (
                   <div
-                    className="bg-[#d03b3b]"
+                    className="bg-brand-purple"
                     style={{ width: `${100 - paidPct}%` }}
                   />
                 )}
               </div>
               <div className="flex justify-between text-xs font-medium">
-                <span className="text-[#0a7d0a]">
+                <span className="text-brand-green-dark">
                   Paid {formatBaht(report.paidTotal)}
                 </span>
-                <span className="text-[#c02f2f]">
+                <span className="text-brand-purple-dark">
                   Unpaid {formatBaht(report.unpaidTotal)}
                 </span>
               </div>

@@ -9,23 +9,23 @@ export function UnpaidBanner({
 }) {
   if (unpaidCount === 0) {
     return (
-      <div className="rounded-2xl bg-[#0ca30c]/10 px-4 py-3 text-sm font-semibold text-[#0a7d0a]">
+      <div className="rounded-2xl bg-brand-green/10 px-4 py-3 text-sm font-semibold text-brand-green-dark">
         ✓ All paid up
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-between rounded-2xl bg-[#d03b3b]/10 px-4 py-3">
+    <div className="flex items-center justify-between rounded-2xl bg-brand-purple/10 px-4 py-3">
       <div>
-        <p className="text-lg font-bold text-[#c02f2f]">
+        <p className="font-serif text-lg font-normal text-brand-purple-dark">
           {formatBaht(unpaidTotal)}
         </p>
-        <p className="text-xs font-medium text-[#c02f2f]/80">
+        <p className="text-xs font-medium text-brand-purple-dark/80">
           not yet paid to you
         </p>
       </div>
-      <span className="rounded-full bg-[#d03b3b]/15 px-3 py-1 text-xs font-bold text-[#c02f2f]">
+      <span className="rounded-full bg-brand-purple/15 px-3 py-1 text-xs font-bold text-brand-purple-dark">
         {unpaidCount} session{unpaidCount === 1 ? "" : "s"}
       </span>
     </div>

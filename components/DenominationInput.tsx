@@ -61,7 +61,7 @@ export function DenominationInput({
           {unit === "note" ? "Banknote" : "Coin"} · ฿{value}
         </p>
         <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold text-brand-navy">
+          <p className="font-serif text-sm text-brand-navy">
             {formatBaht(subtotal)}
           </p>
           {bank > 0 && (
@@ -92,7 +92,7 @@ export function DenominationInput({
         onClick={onCommit}
         disabled={parseDraft(draft) === 0}
         aria-label={`Add ${label} baht stack to count`}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-purple to-brand-orange text-xl font-bold text-white shadow-md shadow-brand-purple/20 transition-all duration-150 active:scale-90 disabled:opacity-30 disabled:shadow-none"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-purple to-brand-orange text-xl font-bold text-white shadow-md shadow-brand-purple/20 transition-all active:scale-90 disabled:opacity-30 disabled:shadow-none"
       >
         +
       </button>

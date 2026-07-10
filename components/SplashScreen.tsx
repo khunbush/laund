@@ -28,10 +28,10 @@ export function SplashScreen() {
       <div className="pointer-events-none absolute -right-16 -top-10 h-56 w-56 rounded-full bg-brand-purple/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-brand-orange/20 blur-3xl" />
       <div className="relative flex flex-col items-center">
-        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-purple to-brand-orange text-4xl font-bold text-white shadow-xl shadow-brand-purple/30 motion-safe:animate-[splashpop_450ms_ease-out]">
+        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#c05423] to-[#9c3c17] text-4xl font-bold text-[#fbf7ee] shadow-xl shadow-brand-purple/30 motion-safe:animate-[splashpop_450ms_ease-out]">
           ฿
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">
+        <h1 className="font-serif text-4xl font-normal tracking-tight text-[#fbf7ee]">
           Laund
         </h1>
       </div>

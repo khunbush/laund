@@ -16,7 +16,7 @@ export default function GlobalError({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#14142b",
+          background: "#2c2418",
           color: "#ffffff",
           fontFamily: "system-ui, -apple-system, sans-serif",
           textAlign: "center",
