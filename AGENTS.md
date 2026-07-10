@@ -65,7 +65,8 @@ Vercel.
   `COOKIE_SECRET`, `DATABASE_URL`, `MACHINE_IMPORT_TOKEN`, `CRON_SECRET`.
 - `/api/warmup` (SELECT 1) is pinged from the root layout on app open to wake
   Neon before the first tab tap — don't remove it.
-- Mobile-first: `max-w-md`, test at 390×844. Destructive buttons use the
+- Mobile-first: `max-w-md`, test at 402×874 (iPhone 16/17 Pro logical viewport).
+  Destructive buttons use the
   two-tap "Sure? Tap again" pattern (see `ClearMachineButton`).
 
 ## Git / deploy
