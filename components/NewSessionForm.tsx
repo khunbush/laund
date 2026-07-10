@@ -111,13 +111,7 @@ export function NewSessionForm() {
   }
 
   return (
-    <form
-      action={formAction}
-      className="flex flex-1 flex-col gap-5"
-      style={{
-        paddingBottom: "calc(11rem + env(safe-area-inset-bottom, 0px))",
-      }}
-    >
+    <form action={formAction} className="flex flex-1 flex-col gap-5 pb-6">
       <input type="hidden" name="date" value={date} />
 
       <RunningTotalHero
@@ -127,11 +121,6 @@ export function NewSessionForm() {
       />
 
       <KindSelector value={kind} onChange={setKind} />
-
-      <p className="px-1 text-xs text-brand-muted">
-        Count a stack, type it, tap <span className="font-bold">+</span> — it
-        adds up for you. Tap the orange number to fix a mistake.
-      </p>
 
       {state && "error" in state && (
         <p className="rounded-xl bg-brand-orange/10 px-4 py-2 text-sm font-medium text-brand-orange-dark">
@@ -196,20 +185,13 @@ export function NewSessionForm() {
         />
       </div>
 
-      {/* Sits above the tab bar; the tab bar itself grows by the iPhone
-          home-indicator inset in standalone PWA mode, so this must too. */}
-      <div
-        className="fixed inset-x-0 z-10 mx-auto max-w-md px-4"
-        style={{ bottom: "calc(4.75rem + env(safe-area-inset-bottom, 0px))" }}
+      <button
+        type="submit"
+        disabled={pending || total === 0}
+        className="w-full rounded-full bg-gradient-to-r from-brand-purple to-brand-orange px-6 py-4 text-base font-semibold text-white shadow-xl shadow-brand-purple/25 transition active:scale-[0.98] disabled:opacity-50"
       >
-        <button
-          type="submit"
-          disabled={pending || total === 0}
-          className="w-full rounded-full bg-gradient-to-r from-brand-purple to-brand-orange px-6 py-4 text-base font-semibold text-white shadow-xl shadow-brand-purple/25 transition active:scale-[0.98] disabled:opacity-50"
-        >
-          {pending ? "Saving…" : `Save Session · ${total.toLocaleString()} ฿`}
-        </button>
-      </div>
+        {pending ? "Saving…" : `Save Session · ${total.toLocaleString()} ฿`}
+      </button>
     </form>
   );
 }

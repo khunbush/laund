@@ -17,13 +17,9 @@ export function MachineUpload() {
       action={action}
       className="rounded-2xl border border-black/5 bg-brand-surface p-4"
     >
-      <h2 className="mb-1 text-sm font-semibold text-brand-navy">
+      <h2 className="mb-3 text-sm font-semibold text-brand-navy">
         Upload machine CSV
       </h2>
-      <p className="mb-3 text-xs text-brand-muted">
-        Export from a washclub branch, pick which branch, and upload. Re-uploading
-        a date range just updates it.
-      </p>
 
       <div className="flex flex-col gap-2">
         <select

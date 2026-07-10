@@ -59,6 +59,18 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Hide scrollbars everywhere — the app should feel like a native app,
+   not a website. Content still scrolls normally. */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 /* Instant, native-feeling taps: kill the gray tap flash and the
    double-tap-to-zoom delay on interactive elements. */
 * {
