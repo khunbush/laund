@@ -17,8 +17,8 @@ import { currentMonthIct } from "@/lib/ict";
 export const dynamic = "force-dynamic";
 
 const BRANCH_NAMES: Record<1 | 2, string> = {
-  1: "Branch 1",
-  2: "Branch 2",
+  1: "Marina",
+  2: "LeBush",
 };
 
 type View = "all" | "1" | "2";
@@ -93,8 +93,8 @@ export default async function BranchesPage({
           {(
             [
               ["all", "Both branches"],
-              ["1", "Branch 1"],
-              ["2", "Branch 2"],
+              ["1", BRANCH_NAMES[1]],
+              ["2", BRANCH_NAMES[2]],
             ] as const
           ).map(([v, label]) => (
             <Link
@@ -130,7 +130,7 @@ export default async function BranchesPage({
                   value={formatBaht(s.revenue)}
                   caption={
                     view === "all"
-                      ? `B1 ${formatBaht(perf.branches[1].revenue)} · B2 ${formatBaht(perf.branches[2].revenue)}`
+                      ? `${BRANCH_NAMES[1]} ${formatBaht(perf.branches[1].revenue)} · ${BRANCH_NAMES[2]} ${formatBaht(perf.branches[2].revenue)}`
                       : `${s.activeDays} days with data`
                   }
                 />

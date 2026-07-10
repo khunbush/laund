@@ -80,7 +80,7 @@ function CompareCard({ row }: { row: CompareRow }) {
 
       {!noData && (
         <p className="mt-2 text-xs text-brand-muted">
-          Branch 1 {formatBaht(row.machineBranch1)} · Branch 2{" "}
+          Marina {formatBaht(row.machineBranch1)} · LeBush{" "}
           {formatBaht(row.machineBranch2)}
         </p>
       )}
@@ -93,9 +93,9 @@ function CompareCard({ row }: { row: CompareRow }) {
         (missing1 || missing2) && (
           <p className="mt-2 rounded-lg bg-brand-orange/8 px-2.5 py-1.5 text-xs text-brand-orange-dark">
             ⚠ Partial data:{" "}
-            {missing1 ? `Branch 1 has ${row.branch1DaysCovered}/${row.windowDays} days` : ""}
+            {missing1 ? `Marina has ${row.branch1DaysCovered}/${row.windowDays} days` : ""}
             {missing1 && missing2 ? ", " : ""}
-            {missing2 ? `Branch 2 has ${row.branch2DaysCovered}/${row.windowDays} days` : ""}
+            {missing2 ? `LeBush has ${row.branch2DaysCovered}/${row.windowDays} days` : ""}
             . The comparison may be understated.
           </p>
         )
@@ -145,8 +145,8 @@ export default async function ComparePage() {
                 </p>
                 <p className="text-xs text-brand-muted">
                   {fmtDate(comparison.pending.since!)} →{" "}
-                  {fmtDate(comparison.pending.until)} · not yet counted (B1{" "}
-                  {formatBaht(comparison.pending.branch1)} · B2{" "}
+                  {fmtDate(comparison.pending.until)} · not yet counted (Marina{" "}
+                  {formatBaht(comparison.pending.branch1)} · LeBush{" "}
                   {formatBaht(comparison.pending.branch2)})
                 </p>
               </div>
@@ -192,7 +192,7 @@ export default async function ComparePage() {
             {status.map((b) => (
               <div key={b.branch} className="flex items-center justify-between gap-2">
                 <span className="min-w-0 flex-1 text-brand-muted">
-                  Branch {b.branch} — {b.branch === 1 ? "washclub" : "washclub v2"}
+                  {b.branch === 1 ? "Marina" : "LeBush"}
                 </span>
                 <span className="text-right font-semibold text-brand-navy">
                   {b.dayCount > 0 ? (
