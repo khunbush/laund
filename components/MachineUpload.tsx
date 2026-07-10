@@ -27,8 +27,8 @@ export function MachineUpload() {
           defaultValue="1"
           className="w-full rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2.5 text-sm font-medium text-brand-navy outline-none focus:border-brand-purple"
         >
-          <option value="1">Branch 1 — washclub</option>
-          <option value="2">Branch 2 — washclub v2</option>
+          <option value="1">Marina</option>
+          <option value="2">LeBush</option>
         </select>
         <input
           type="file"

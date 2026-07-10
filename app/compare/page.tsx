@@ -192,7 +192,7 @@ export default async function ComparePage() {
             {status.map((b) => (
               <div key={b.branch} className="flex items-center justify-between gap-2">
                 <span className="min-w-0 flex-1 text-brand-muted">
-                  Branch {b.branch} — {b.branch === 1 ? "washclub" : "washclub v2"}
+                  {b.branch === 1 ? "Marina" : "LeBush"}
                 </span>
                 <span className="text-right font-semibold text-brand-navy">
                   {b.dayCount > 0 ? (

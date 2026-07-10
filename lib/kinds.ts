@@ -7,13 +7,13 @@ export const SESSION_KINDS: {
 }[] = [
   { value: "LAUNDRY", label: "Laundry", emoji: "🧺" },
   { value: "SNOOKER", label: "Snooker", emoji: "🎱" },
-  { value: "LUMP_SUM", label: "Lump Sum", emoji: "💰" },
+  { value: "LUMP_SUM", label: "Misc", emoji: "💰" },
 ];
 
 export const KIND_LABELS: Record<SessionKindValue, string> = {
   LAUNDRY: "Laundry",
   SNOOKER: "Snooker",
-  LUMP_SUM: "Lump Sum",
+  LUMP_SUM: "Misc",
 };
 
 export const KIND_EMOJI: Record<SessionKindValue, string> = {
