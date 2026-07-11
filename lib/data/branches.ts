@@ -10,6 +10,12 @@ export interface BranchMonthStats {
   bestDay: { date: string; revenue: number } | null;
   prevRevenue: number;
   pctChange: number | null;
+  // Same-day comparison: previous month's revenue counted only through the
+  // latest day-of-month that has data in the selected month, so a mid-month
+  // month-to-date figure is compared against an equal slice of last month.
+  sameDayCutoff: number | null; // day-of-month the slice runs through
+  prevRevenueSameDay: number;
+  pctChangeSameDay: number | null;
   hasAnyData: boolean; // whether this branch has rows in any month
 }
 
@@ -47,6 +53,9 @@ function emptyStats(): BranchMonthStats {
     bestDay: null,
     prevRevenue: 0,
     pctChange: null,
+    sameDayCutoff: null,
+    prevRevenueSameDay: 0,
+    pctChangeSameDay: null,
     hasAnyData: false,
   };
 }
@@ -85,6 +94,13 @@ export async function getBranchPerformance(
     1: DOW_LABELS.map(() => ({ sum: 0, count: 0 })),
     2: DOW_LABELS.map(() => ({ sum: 0, count: 0 })),
   };
+  // Per-branch prev-month rows kept by day-of-month so the same-day slice can
+  // be summed once the selected month's data coverage (max day) is known.
+  const prevMonthDays: Record<1 | 2, { day: number; revenue: number }[]> = {
+    1: [],
+    2: [],
+  };
+  const maxDataDay: Record<1 | 2, number> = { 1: 0, 2: 0 };
 
   for (const row of rows) {
     if (row.branch !== 1 && row.branch !== 2) continue;
@@ -104,12 +120,19 @@ export async function getBranchPerformance(
     weekdaySums[branch][dow].sum += row.revenue;
     weekdaySums[branch][dow].count += 1;
 
-    if (ym === prevMonth) stats.prevRevenue += row.revenue;
+    if (ym === prevMonth) {
+      stats.prevRevenue += row.revenue;
+      prevMonthDays[branch].push({
+        day: Number(iso.slice(8, 10)),
+        revenue: row.revenue,
+      });
+    }
 
     if (ym === month) {
       stats.revenue += row.revenue;
       stats.orders += row.txnCount;
       stats.activeDays += 1;
+      maxDataDay[branch] = Math.max(maxDataDay[branch], Number(iso.slice(8, 10)));
       if (!stats.bestDay || row.revenue > stats.bestDay.revenue) {
         stats.bestDay = { date: iso, revenue: row.revenue };
       }
@@ -127,6 +150,18 @@ export async function getBranchPerformance(
       stats.prevRevenue > 0
         ? ((stats.revenue - stats.prevRevenue) / stats.prevRevenue) * 100
         : null;
+    if (maxDataDay[branch] > 0) {
+      stats.sameDayCutoff = maxDataDay[branch];
+      stats.prevRevenueSameDay = prevMonthDays[branch]
+        .filter((d) => d.day <= maxDataDay[branch])
+        .reduce((sum, d) => sum + d.revenue, 0);
+      stats.pctChangeSameDay =
+        stats.prevRevenueSameDay > 0
+          ? ((stats.revenue - stats.prevRevenueSameDay) /
+              stats.prevRevenueSameDay) *
+            100
+          : null;
+    }
   }
 
   const combined = emptyStats();
@@ -140,6 +175,18 @@ export async function getBranchPerformance(
   combined.pctChange =
     combined.prevRevenue > 0
       ? ((combined.revenue - combined.prevRevenue) / combined.prevRevenue) *
+        100
+      : null;
+  combined.sameDayCutoff =
+    Math.max(maxDataDay[1], maxDataDay[2]) > 0
+      ? Math.max(maxDataDay[1], maxDataDay[2])
+      : null;
+  combined.prevRevenueSameDay =
+    branches[1].prevRevenueSameDay + branches[2].prevRevenueSameDay;
+  combined.pctChangeSameDay =
+    combined.sameDayCutoff !== null && combined.prevRevenueSameDay > 0
+      ? ((combined.revenue - combined.prevRevenueSameDay) /
+          combined.prevRevenueSameDay) *
         100
       : null;
   for (const [date, v] of dailyMap) {
