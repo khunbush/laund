@@ -32,6 +32,18 @@ function monthTitle(month: string) {
   });
 }
 
+function monthDayLabel(month: string, day: number) {
+  const [y, m] = month.split("-").map(Number);
+  // Clamp: the cutoff day comes from the selected month and may not exist in
+  // the previous month (e.g. day 31 vs a 30-day month).
+  const clamped = Math.min(day, new Date(Date.UTC(y, m, 0)).getUTCDate());
+  return new Date(Date.UTC(y, m - 1, clamped)).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function formatDay(iso: string) {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
     weekday: "short",
@@ -136,6 +148,35 @@ export default async function BranchesPage({
                 />
                 <StatCard
                   variant={
+                    s.pctChangeSameDay === null
+                      ? "white"
+                      : s.pctChangeSameDay >= 0
+                        ? "purple"
+                        : "orange"
+                  }
+                  label="vs Last Month (today)"
+                  value={
+                    s.pctChangeSameDay === null
+                      ? "—"
+                      : `${s.pctChangeSameDay >= 0 ? "+" : ""}${s.pctChangeSameDay.toFixed(0)}%`
+                  }
+                  caption={
+                    s.prevRevenueSameDay > 0 && s.sameDayCutoff !== null
+                      ? `${formatBaht(s.prevRevenueSameDay)} by ${monthDayLabel(perf.prevMonth, s.sameDayCutoff)}`
+                      : "no data last month"
+                  }
+                />
+                <StatCard
+                  variant="white"
+                  label="Avg / Day"
+                  value={
+                    s.avgPerDay !== null
+                      ? formatBaht(Math.round(s.avgPerDay))
+                      : "—"
+                  }
+                />
+                <StatCard
+                  variant={
                     s.pctChange === null
                       ? "white"
                       : s.pctChange >= 0
@@ -156,12 +197,9 @@ export default async function BranchesPage({
                 />
                 <StatCard
                   variant="white"
-                  label="Avg / Day"
-                  value={
-                    s.avgPerDay !== null
-                      ? formatBaht(Math.round(s.avgPerDay))
-                      : "—"
-                  }
+                  label="Best Day"
+                  value={s.bestDay ? formatBaht(s.bestDay.revenue) : "—"}
+                  caption={s.bestDay ? formatDay(s.bestDay.date) : undefined}
                 />
                 <StatCard
                   variant="white"
@@ -172,12 +210,6 @@ export default async function BranchesPage({
                       ? `≈${formatBaht(Math.round(s.revenue / s.orders))} / order`
                       : undefined
                   }
-                />
-                <StatCard
-                  variant="white"
-                  label="Best Day"
-                  value={s.bestDay ? formatBaht(s.bestDay.revenue) : "—"}
-                  caption={s.bestDay ? formatDay(s.bestDay.date) : undefined}
                 />
               </div>
             );
