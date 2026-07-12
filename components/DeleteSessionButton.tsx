@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteSession } from "@/lib/actions/sessions";
+import { useT } from "@/components/I18nProvider";
 
 export function DeleteSessionButton({
   sessionId,
@@ -12,6 +13,7 @@ export function DeleteSessionButton({
   redirectTo?: string;
 }) {
   const router = useRouter();
+  const { t } = useT();
   const [armed, setArmed] = useState(false);
   const [pending, startTransition] = useTransition();
   const disarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -61,7 +63,7 @@ export function DeleteSessionButton({
           : "bg-black/5 text-brand-muted"
       }`}
     >
-      {pending ? "Deleting…" : armed ? "Sure? Tap again" : "Delete"}
+      {pending ? t("deleting") : armed ? t("sureTapAgain") : t("del")}
     </button>
   );
 }

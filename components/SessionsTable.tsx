@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatBaht } from "@/lib/denominations";
-import { KIND_EMOJI, KIND_LABELS, type SessionKindValue } from "@/lib/kinds";
+import { KIND_EMOJI, type SessionKindValue } from "@/lib/kinds";
+import { dateLocale, KIND_KEYS, t, type Lang } from "@/lib/i18n";
 import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { DenomBreakdown } from "@/components/DenomBreakdown";
 import { PaidToggle } from "@/components/PaidToggle";
@@ -22,8 +23,8 @@ export interface SessionRow {
   coin1: number;
 }
 
-function formatDate(date: Date) {
-  return date.toLocaleDateString("en-US", {
+function formatDate(date: Date, locale: string) {
+  return date.toLocaleDateString(locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -32,7 +33,7 @@ function formatDate(date: Date) {
   });
 }
 
-function denomSummary(session: SessionRow) {
+function denomSummary(session: SessionRow, lang: Lang) {
   const parts: string[] = [];
   const entries: [string, number][] = [
     ["1000", session.note1000],
@@ -48,20 +49,22 @@ function denomSummary(session: SessionRow) {
   for (const [label, count] of entries) {
     if (count > 0) parts.push(`${count}×฿${label}`);
   }
-  return parts.join("  ·  ") || "No denominations recorded";
+  return parts.join("  ·  ") || t(lang, "noDenoms");
 }
 
 export function SessionsTable({
   sessions,
   allowDelete = false,
+  lang,
 }: {
   sessions: SessionRow[];
   allowDelete?: boolean;
+  lang: Lang;
 }) {
   if (sessions.length === 0) {
     return (
       <p className="rounded-2xl bg-brand-surface p-6 text-center text-sm text-brand-muted">
-        No sessions yet. Log your first collection from Home.
+        {t(lang, "noSessions")}
       </p>
     );
   }
@@ -80,17 +83,17 @@ export function SessionsTable({
           >
             <div className="flex items-center justify-between gap-2">
               <p className="truncate text-sm font-semibold text-brand-navy">
-                {formatDate(session.date)}
+                {formatDate(session.date, dateLocale(lang))}
               </p>
               <p className="shrink-0 font-serif text-2xl leading-6 font-normal text-brand-purple-dark">
                 {formatBaht(session.totalBaht)}
               </p>
             </div>
           </Link>
-          <DenomBreakdown summary={denomSummary(session)} />
+          <DenomBreakdown summary={denomSummary(session, lang)} />
           <div className="mt-2.5 flex items-center gap-2">
             <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-brand-navy/70">
-              {KIND_EMOJI[session.kind]} {KIND_LABELS[session.kind]}
+              {KIND_EMOJI[session.kind]} {t(lang, KIND_KEYS[session.kind])}
             </span>
             <PaidToggle sessionId={session.id} paid={session.paid} />
             <span className="flex-1" />

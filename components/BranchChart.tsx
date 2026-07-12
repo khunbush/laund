@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import { formatBaht } from "@/lib/denominations";
 import { AXIS_MUTED, GRIDLINE } from "@/lib/chartColors";
+import { dateLocale, monthDay } from "@/lib/i18n";
+import { useT } from "@/components/I18nProvider";
 
 export interface BranchSeries {
   key: "b1" | "b2";
@@ -26,18 +28,18 @@ export interface BranchPoint {
   b2: number | null;
 }
 
-function formatShortDate(iso: string) {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
+function formatShortDate(iso: string, locale: string) {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
   });
 }
 
-function formatMonthLabel(key: string) {
+function formatMonthLabel(key: string, locale: string) {
   const [year, month] = key.split("-");
   const d = new Date(Date.UTC(Number(year), Number(month) - 1, 1));
-  return `${d.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" })} '${year.slice(-2)}`;
+  return `${d.toLocaleDateString(locale, { month: "short", timeZone: "UTC" })} '${year.slice(-2)}`;
 }
 
 function formatAxisValue(v: number) {
@@ -139,18 +141,20 @@ export function BranchTrendChart({
   monthly: { month: string; b1: number | null; b2: number | null }[];
   stacked?: boolean;
 }) {
+  const { lang, t } = useT();
+  const locale = dateLocale(lang);
   const [view, setView] = useState<"daily" | "monthly">("daily");
 
   const data: BranchPoint[] =
     view === "daily"
-      ? daily.map((p) => ({ ...p, label: formatShortDate(p.date) }))
-      : monthly.map((p) => ({ ...p, label: formatMonthLabel(p.month) }));
+      ? daily.map((p) => ({ ...p, label: formatShortDate(p.date, locale) }))
+      : monthly.map((p) => ({ ...p, label: formatMonthLabel(p.month, locale) }));
 
   return (
     <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-brand-navy">
-          {view === "daily" ? "Daily revenue" : "Monthly revenue"}
+          {view === "daily" ? t("dailyRevenue") : t("monthlyRevenue")}
         </h3>
         <div className="flex gap-1 rounded-full bg-black/5 p-1 text-xs font-medium">
           <button
@@ -162,7 +166,7 @@ export function BranchTrendChart({
                 : "text-brand-muted"
             }`}
           >
-            Daily
+            {t("daily")}
           </button>
           <button
             type="button"
@@ -173,13 +177,13 @@ export function BranchTrendChart({
                 : "text-brand-muted"
             }`}
           >
-            Monthly
+            {t("monthly")}
           </button>
         </div>
       </div>
       {data.length === 0 ? (
         <p className="py-10 text-center text-sm text-brand-muted">
-          No machine data {view === "daily" ? "this month" : "yet"}.
+          {view === "daily" ? t("noMachineThisMonth") : t("noMachineYet")}
         </p>
       ) : (
         <Bars data={data} series={series} stacked={stacked} />
@@ -198,6 +202,7 @@ export function BranchWeekdayChart({
   weekday: { dow: string; b1: number | null; b2: number | null }[];
   stacked?: boolean;
 }) {
+  const { t } = useT();
   const hasData = weekday.some((w) =>
     series.some((s) => (w[s.key] ?? 0) > 0),
   );
@@ -207,13 +212,13 @@ export function BranchWeekdayChart({
     <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-brand-navy">
-          Day of week — average
+          {t("weekdayAvg")}
         </h3>
-        <span className="text-[11px] text-brand-muted">all data</span>
+        <span className="text-[11px] text-brand-muted">{t("allData")}</span>
       </div>
       {!hasData ? (
         <p className="py-10 text-center text-sm text-brand-muted">
-          No machine data yet.
+          {t("noMachineYet")}
         </p>
       ) : (
         <Bars data={data} series={series} round stacked={stacked} />
@@ -234,6 +239,7 @@ export function BranchHourlyChart({
   since: string | null;
   stacked?: boolean;
 }) {
+  const { lang, t } = useT();
   const hasData =
     since !== null &&
     hourly.some((h) => series.some((s) => (h[s.key] ?? 0) > 0));
@@ -242,22 +248,18 @@ export function BranchHourlyChart({
   return (
     <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-brand-navy">Time of day</h3>
+        <h3 className="text-sm font-semibold text-brand-navy">{t("timeOfDay")}</h3>
         {hasData && (
           <span className="text-[11px] text-brand-muted">
-            since{" "}
-            {new Date(`${since}T00:00:00Z`).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              timeZone: "UTC",
+            {t("since", {
+              date: monthDay(lang, new Date(`${since}T00:00:00Z`), true),
             })}
           </span>
         )}
       </div>
       {!hasData ? (
         <p className="py-10 text-center text-sm text-brand-muted">
-          Hourly data builds up from each new daily upload — check back after
-          the next one.
+          {t("hourlyEmpty")}
         </p>
       ) : (
         <Bars data={data} series={series} stacked={stacked} xInterval={2} />

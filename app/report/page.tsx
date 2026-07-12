@@ -4,24 +4,26 @@ import { CalendarHeatmap } from "@/components/CalendarHeatmap";
 import { StatCard } from "@/components/StatCard";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { formatBaht } from "@/lib/denominations";
-import { KIND_EMOJI, KIND_LABELS, type SessionKindValue } from "@/lib/kinds";
+import { KIND_EMOJI, type SessionKindValue } from "@/lib/kinds";
 import { currentMonthIct } from "@/lib/ict";
+import { dateLocale, KIND_KEYS, t, tn } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
 const KIND_ORDER: SessionKindValue[] = ["LAUNDRY", "SNOOKER", "LUMP_SUM"];
 
-function monthTitle(month: string) {
+function monthTitle(month: string, locale: string) {
   const [y, m] = month.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", {
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString(locale, {
     month: "long",
     year: "numeric",
     timeZone: "UTC",
   });
 }
 
-function formatDay(iso: string) {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
+function formatDay(iso: string, locale: string) {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString(locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -34,6 +36,8 @@ export default async function ReportPage({
 }: {
   searchParams: Promise<{ month?: string }>;
 }) {
+  const lang = await getLang();
+  const locale = dateLocale(lang);
   const { month: monthParam } = await searchParams;
   const month = /^\d{4}-\d{2}$/.test(monthParam ?? "")
     ? monthParam!
@@ -51,17 +55,17 @@ export default async function ReportPage({
           <Link
             href={`/report?month=${report.prevMonth}`}
             className="rounded-full bg-black/5 px-3.5 py-1.5 text-sm font-bold text-brand-navy transition active:scale-95"
-            aria-label="Previous month"
+            aria-label={t(lang, "prevMonth")}
           >
             ‹
           </Link>
           <h1 className="text-lg font-bold text-brand-navy">
-            {monthTitle(month)}
+            {monthTitle(month, locale)}
           </h1>
           <Link
             href={`/report?month=${report.nextMonth}`}
             className="rounded-full bg-black/5 px-3.5 py-1.5 text-sm font-bold text-brand-navy transition active:scale-95"
-            aria-label="Next month"
+            aria-label={t(lang, "nextMonth")}
           >
             ›
           </Link>
@@ -69,16 +73,16 @@ export default async function ReportPage({
 
         {report.sessionCount === 0 ? (
           <p className="rounded-2xl bg-brand-surface p-6 text-center text-sm text-brand-muted">
-            No sessions recorded in {monthTitle(month)}.
+            {t(lang, "noSessionsMonth", { month: monthTitle(month, locale) })}
           </p>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
               <StatCard
                 variant="navy"
-                label="Month Total"
+                label={t(lang, "monthTotal")}
                 value={formatBaht(report.total)}
-                caption={`${report.sessionCount} sessions · ${report.dayCount} days`}
+                caption={`${tn(lang, "sessions", report.sessionCount)} · ${tn(lang, "days", report.dayCount)}`}
               />
               <StatCard
                 variant={
@@ -88,7 +92,7 @@ export default async function ReportPage({
                       ? "purple"
                       : "orange"
                 }
-                label="vs Last Month"
+                label={t(lang, "vsLastMonth")}
                 value={
                   report.pctChange === null
                     ? "—"
@@ -96,34 +100,40 @@ export default async function ReportPage({
                 }
                 caption={
                   report.prevTotal > 0
-                    ? `${formatBaht(report.prevTotal)} last month`
-                    : "no data last month"
+                    ? t(lang, "lastMonthAmt", {
+                        amt: formatBaht(report.prevTotal),
+                      })
+                    : t(lang, "noDataLastMonth")
                 }
               />
               <StatCard
                 variant="white"
-                label="Avg / Day"
+                label={t(lang, "avgPerDay")}
                 value={
                   report.averagePerDay ? formatBaht(report.averagePerDay) : "—"
                 }
               />
               <StatCard
                 variant="white"
-                label="Best Day"
+                label={t(lang, "bestDayCard")}
                 value={report.bestDay ? formatBaht(report.bestDay.totalBaht) : "—"}
-                caption={report.bestDay ? formatDay(report.bestDay.date) : undefined}
+                caption={
+                  report.bestDay
+                    ? formatDay(report.bestDay.date, locale)
+                    : undefined
+                }
               />
             </div>
 
             <section className="rounded-2xl border border-black/5 bg-brand-surface p-4">
               <h2 className="mb-3 text-sm font-semibold text-brand-navy">
-                By Type
+                {t(lang, "byType")}
               </h2>
               <div className="flex flex-col gap-2.5">
                 {KIND_ORDER.filter((k) => report.byKind[k] > 0).map((k) => (
                   <div key={k} className="flex items-center justify-between text-sm">
                     <span className="text-brand-muted">
-                      {KIND_EMOJI[k]} {KIND_LABELS[k]}
+                      {KIND_EMOJI[k]} {t(lang, KIND_KEYS[k])}
                     </span>
                     <span className="font-serif text-xl leading-5 font-normal text-brand-navy">
                       {formatBaht(report.byKind[k])}
@@ -135,7 +145,7 @@ export default async function ReportPage({
 
             <section className="rounded-2xl border border-black/5 bg-brand-surface p-4">
               <h2 className="mb-3 text-sm font-semibold text-brand-navy">
-                Paid vs Unpaid
+                {t(lang, "paidVsUnpaid")}
               </h2>
               <div className="mb-2 flex h-3 overflow-hidden rounded-full bg-black/5">
                 {report.paidTotal > 0 && (
@@ -153,22 +163,23 @@ export default async function ReportPage({
               </div>
               <div className="flex justify-between text-xs font-medium">
                 <span className="text-brand-green-dark">
-                  Paid {formatBaht(report.paidTotal)}
+                  {t(lang, "paidAmt", { amt: formatBaht(report.paidTotal) })}
                 </span>
                 <span className="text-brand-purple-dark">
-                  Unpaid {formatBaht(report.unpaidTotal)}
+                  {t(lang, "unpaidAmt", { amt: formatBaht(report.unpaidTotal) })}
                 </span>
               </div>
             </section>
 
             <div>
               <h2 className="mb-2 px-1 text-sm font-semibold text-brand-navy">
-                Collection Days
+                {t(lang, "collectionDays")}
               </h2>
               <CalendarHeatmap
                 year={year}
                 month={monthNum}
                 dailyTotals={report.dailyTotals}
+                lang={lang}
               />
             </div>
           </>

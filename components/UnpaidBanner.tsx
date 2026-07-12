@@ -1,4 +1,7 @@
+"use client";
+
 import { formatBaht } from "@/lib/denominations";
+import { useT } from "@/components/I18nProvider";
 
 export function UnpaidBanner({
   unpaidTotal,
@@ -7,10 +10,11 @@ export function UnpaidBanner({
   unpaidTotal: number;
   unpaidCount: number;
 }) {
+  const { t, tn } = useT();
   if (unpaidCount === 0) {
     return (
       <div className="rounded-2xl bg-brand-green/10 px-4 py-3 text-sm font-semibold text-brand-green-dark">
-        ✓ All paid up
+        {t("allPaidUp")}
       </div>
     );
   }
@@ -22,11 +26,11 @@ export function UnpaidBanner({
           {formatBaht(unpaidTotal)}
         </p>
         <p className="text-xs font-medium text-brand-purple-dark/80">
-          not yet paid to you
+          {t("notYetPaid")}
         </p>
       </div>
       <span className="rounded-full bg-brand-purple/15 px-3 py-1 text-xs font-bold text-brand-purple-dark">
-        {unpaidCount} session{unpaidCount === 1 ? "" : "s"}
+        {tn("sessions", unpaidCount)}
       </span>
     </div>
   );

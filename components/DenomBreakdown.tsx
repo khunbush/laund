@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/components/I18nProvider";
 
 export function DenomBreakdown({ summary }: { summary: string }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
 
   return (
@@ -16,7 +18,7 @@ export function DenomBreakdown({ summary }: { summary: string }) {
         summary
       ) : (
         <span className="inline-flex items-center gap-1">
-          Breakdown
+          {t("breakdown")}
           <span aria-hidden className="text-[10px]">
             ▸
           </span>

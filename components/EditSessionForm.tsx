@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { shortDate, type Lang } from "@/lib/i18n";
+import { useT } from "@/components/I18nProvider";
 import { useRouter } from "next/navigation";
 import { RunningTotalHero } from "@/components/RunningTotalHero";
 import { DenominationInput, parseDraft } from "@/components/DenominationInput";
@@ -20,15 +22,10 @@ import {
   type DenomKey,
 } from "@/lib/denominations";
 
-function formatDateLabel(iso: string) {
+function formatDateLabel(iso: string, lang: Lang) {
   const d = new Date(`${iso}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
+  return shortDate(lang, d, true);
 }
 
 const notes = DENOMINATIONS.filter((d) => d.kind === "note");
@@ -50,6 +47,7 @@ export function EditSessionForm({
   originalTotal: number;
 }) {
   const router = useRouter();
+  const { lang, t } = useT();
   const [bank, setBank] = useState<DenomCounts>(initialCounts);
   const [drafts, setDrafts] = useState<DenomDrafts>({ ...EMPTY_DRAFTS });
   const [kind, setKind] = useState<SessionKindValue>(initialKind);
@@ -108,8 +106,8 @@ export function EditSessionForm({
       style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
     >
       <RunningTotalHero
-        label="Session total"
-        dateLabel={formatDateLabel(date)}
+        label={t("sessionTotal")}
+        dateLabel={formatDateLabel(date, lang)}
         total={total}
       />
 
@@ -117,8 +115,7 @@ export function EditSessionForm({
 
       {totalChanged && (
         <p className="rounded-xl bg-brand-orange/10 px-4 py-2 text-sm font-medium text-brand-orange-dark">
-          Original total was {formatBaht(originalTotal)} — new total is{" "}
-          {formatBaht(total)}.
+          {t("originalTotal", { a: formatBaht(originalTotal), b: formatBaht(total) })}
         </p>
       )}
       {state && "error" in state && (
@@ -129,7 +126,7 @@ export function EditSessionForm({
 
       <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
         <label htmlFor="date" className="mb-1 block text-xs text-brand-muted">
-          Collection date
+          {t("collectionDate")}
         </label>
         <input
           id="date"
@@ -143,27 +140,27 @@ export function EditSessionForm({
 
       <section>
         <h2 className="mb-2 px-1 text-sm font-semibold text-brand-muted">
-          Notes
+          {t("notesSection")}
         </h2>
         <div className="flex flex-col gap-2">{notes.map(renderRow)}</div>
       </section>
 
       <section>
         <h2 className="mb-2 px-1 text-sm font-semibold text-brand-muted">
-          Coins
+          {t("coinsSection")}
         </h2>
         <div className="flex flex-col gap-2">{coins.map(renderRow)}</div>
       </section>
 
       <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
         <label htmlFor="note" className="mb-1 block text-xs text-brand-muted">
-          Note (optional)
+          {t("noteOptional")}
         </label>
         <input
           id="note"
           name="note"
           type="text"
-          placeholder="e.g. coin machine jammed"
+          placeholder={t("notePlaceholder")}
           maxLength={500}
           value={note}
           onChange={(e) => setNote(e.target.value)}
@@ -177,14 +174,14 @@ export function EditSessionForm({
           onClick={() => router.push("/sessions")}
           className="flex-1 rounded-full border border-black/10 px-6 py-3.5 text-sm font-semibold text-brand-navy transition active:scale-[0.98]"
         >
-          Cancel
+          {t("cancel")}
         </button>
         <button
           type="submit"
           disabled={pending}
           className="flex-[2] rounded-full bg-gradient-to-r from-brand-purple to-brand-orange px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-purple/20 transition active:scale-[0.98] disabled:opacity-60"
         >
-          {pending ? "Saving…" : "Save Changes"}
+          {pending ? t("saving") : t("saveChanges")}
         </button>
       </div>
     </form>

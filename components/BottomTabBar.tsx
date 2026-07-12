@@ -2,17 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useT } from "@/components/I18nProvider";
+import type { MsgKey } from "@/lib/i18n";
 
-const TABS = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/sessions", label: "History", icon: "🧾" },
-  { href: "/dashboard", label: "Dashboard", icon: "📊" },
-  { href: "/compare", label: "Match", icon: "⚖️" },
-  { href: "/branches", label: "Branches", icon: "🏪" },
+const TABS: { href: string; label: MsgKey; icon: string }[] = [
+  { href: "/", label: "tabHome", icon: "🏠" },
+  { href: "/sessions", label: "tabHistory", icon: "🧾" },
+  { href: "/dashboard", label: "tabDashboard", icon: "📊" },
+  { href: "/compare", label: "tabMatch", icon: "⚖️" },
+  { href: "/branches", label: "tabBranches", icon: "🏪" },
 ];
 
 export function BottomTabBar() {
   const pathname = usePathname();
+  const { t } = useT();
 
   return (
     <nav className="safe-bottom sticky bottom-0 z-10 border-t border-black/5 bg-brand-surface/95 backdrop-blur">
@@ -30,7 +33,7 @@ export function BottomTabBar() {
               }`}
             >
               <span className="text-lg leading-none">{tab.icon}</span>
-              {tab.label}
+              {t(tab.label)}
             </Link>
           );
         })}

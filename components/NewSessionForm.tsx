@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useT } from "@/components/I18nProvider";
+import { shortDate, type Lang } from "@/lib/i18n";
 import { RunningTotalHero } from "@/components/RunningTotalHero";
 import { DenominationInput, parseDraft } from "@/components/DenominationInput";
 import { KindSelector } from "@/components/KindSelector";
@@ -50,15 +52,12 @@ function todayIso() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function todayLabel() {
-  return new Date().toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+function todayLabel(lang: Lang) {
+  return shortDate(lang, new Date());
 }
 
 export function NewSessionForm() {
+  const { lang, t } = useT();
   const [bank, setBank] = useState<DenomCounts>({ ...EMPTY_COUNTS });
   const [drafts, setDrafts] = useState<DenomDrafts>({ ...EMPTY_DRAFTS });
   const [kind, setKind] = useState<SessionKindValue>("LAUNDRY");
@@ -115,8 +114,8 @@ export function NewSessionForm() {
       <input type="hidden" name="date" value={date} />
 
       <RunningTotalHero
-        label="Today's collection"
-        dateLabel={todayLabel()}
+        label={t("todaysCollection")}
+        dateLabel={todayLabel(lang)}
         total={total}
       />
 
@@ -129,13 +128,13 @@ export function NewSessionForm() {
       )}
       {state && "ok" in state && state.ok && (
         <p className="rounded-xl bg-brand-purple/10 px-4 py-2 text-sm font-medium text-brand-purple-dark">
-          Session saved.
+          {t("sessionSaved")}
         </p>
       )}
 
       <section>
         <h2 className="mb-2 px-1 text-sm font-semibold text-brand-muted">
-          Notes
+          {t("notesSection")}
         </h2>
         <div className="flex flex-col gap-2">
           {notes.filter((d) => d.common).map((d) => renderRow(d))}
@@ -147,13 +146,13 @@ export function NewSessionForm() {
           onClick={() => setShowMoreNotes((v) => !v)}
           className="mt-2 px-1 text-xs font-medium text-brand-purple"
         >
-          {showMoreNotes ? "Hide 500 / 1000 notes" : "Show 500 / 1000 notes"}
+          {showMoreNotes ? t("hideBigNotes") : t("showBigNotes")}
         </button>
       </section>
 
       <section>
         <h2 className="mb-2 px-1 text-sm font-semibold text-brand-muted">
-          Coins
+          {t("coinsSection")}
         </h2>
         <div className="flex flex-col gap-2">
           {coins.filter((d) => d.common).map((d) => renderRow(d))}
@@ -165,19 +164,19 @@ export function NewSessionForm() {
           onClick={() => setShowMoreCoins((v) => !v)}
           className="mt-2 px-1 text-xs font-medium text-brand-purple"
         >
-          {showMoreCoins ? "Hide 2 baht coins" : "Show 2 baht coins"}
+          {showMoreCoins ? t("hide2Coins") : t("show2Coins")}
         </button>
       </section>
 
       <div className="rounded-2xl border border-black/5 bg-brand-surface p-4">
         <label htmlFor="note" className="mb-1 block text-xs text-brand-muted">
-          Note (optional)
+          {t("noteOptional")}
         </label>
         <input
           id="note"
           name="note"
           type="text"
-          placeholder="e.g. coin machine jammed"
+          placeholder={t("notePlaceholder")}
           maxLength={500}
           value={note}
           onChange={(e) => setNote(e.target.value)}
@@ -190,7 +189,9 @@ export function NewSessionForm() {
         disabled={pending || total === 0}
         className="w-full rounded-full bg-gradient-to-r from-brand-purple to-brand-orange px-6 py-4 text-base font-semibold text-white shadow-xl shadow-brand-purple/25 transition active:scale-[0.98] disabled:opacity-50"
       >
-        {pending ? "Saving…" : `Save Session · ${total.toLocaleString()} ฿`}
+        {pending
+          ? t("saving")
+          : t("saveSession", { total: total.toLocaleString() })}
       </button>
     </form>
   );
