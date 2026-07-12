@@ -1,6 +1,7 @@
 "use client";
 
 import { formatBaht } from "@/lib/denominations";
+import { useT } from "@/components/I18nProvider";
 
 export function parseDraft(draft: string): number {
   const parsed = Number.parseInt(draft, 10);
@@ -37,6 +38,7 @@ export function DenominationInput({
   onRecall: () => void;
   muted?: boolean;
 }) {
+  const { t } = useT();
   const effective = bank + parseDraft(draft);
   const subtotal = effective * value;
 
@@ -58,7 +60,7 @@ export function DenominationInput({
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs text-brand-muted">
-          {unit === "note" ? "Banknote" : "Coin"} · ฿{value}
+          {unit === "note" ? t("banknote") : t("coin")} · ฿{value}
         </p>
         <div className="flex items-center gap-2">
           <p className="font-serif text-lg leading-6 text-brand-navy">

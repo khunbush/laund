@@ -10,6 +10,9 @@ import { BottomTabBar } from "@/components/BottomTabBar";
 import { formatBaht } from "@/lib/denominations";
 import { BRANCH_COLORS } from "@/lib/chartColors";
 import { currentMonthIct } from "@/lib/ict";
+import { I18nProvider } from "@/components/I18nProvider";
+import { dateLocale, DOW_KEYS, t, type Lang } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 
 // Always live: this page reads the machine data that the Match tab's uploads
 // maintain, so it must reflect the exact current state, never a cached
@@ -23,29 +26,29 @@ const BRANCH_NAMES: Record<1 | 2, string> = {
 
 type View = "all" | "1" | "2";
 
-function monthTitle(month: string) {
+function monthTitle(month: string, locale: string) {
   const [y, m] = month.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", {
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString(locale, {
     month: "long",
     year: "numeric",
     timeZone: "UTC",
   });
 }
 
-function monthDayLabel(month: string, day: number) {
+function monthDayLabel(month: string, day: number, locale: string) {
   const [y, m] = month.split("-").map(Number);
   // Clamp: the cutoff day comes from the selected month and may not exist in
   // the previous month (e.g. day 31 vs a 30-day month).
   const clamped = Math.min(day, new Date(Date.UTC(y, m, 0)).getUTCDate());
-  return new Date(Date.UTC(y, m - 1, clamped)).toLocaleDateString("en-US", {
+  return new Date(Date.UTC(y, m - 1, clamped)).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
   });
 }
 
-function formatDay(iso: string) {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
+function formatDay(iso: string, locale: string) {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString(locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -58,6 +61,8 @@ export default async function BranchesPage({
 }: {
   searchParams: Promise<{ month?: string; view?: string }>;
 }) {
+  const lang = await getLang();
+  const locale = dateLocale(lang);
   const { month: monthParam, view: viewParam } = await searchParams;
   const month = /^\d{4}-\d{2}$/.test(monthParam ?? "")
     ? monthParam!
@@ -77,25 +82,30 @@ export default async function BranchesPage({
   const monthHasData = shownBranches.some(
     (b) => perf.branches[b].activeDays > 0,
   );
+  const weekday = perf.weekday.map((w, i) => ({
+    ...w,
+    dow: t(lang, DOW_KEYS[i]),
+  }));
 
   return (
+    <I18nProvider lang={lang}>
     <div className="flex min-h-screen flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-6 pb-6">
         <div className="flex items-center justify-between px-1">
           <Link
             href={`/branches?month=${perf.prevMonth}&view=${view}`}
             className="rounded-full bg-black/5 px-3.5 py-1.5 text-sm font-bold text-brand-navy transition active:scale-95"
-            aria-label="Previous month"
+            aria-label={t(lang, "prevMonth")}
           >
             ‹
           </Link>
           <h1 className="text-lg font-bold text-brand-navy">
-            {monthTitle(month)}
+            {monthTitle(month, locale)}
           </h1>
           <Link
             href={`/branches?month=${perf.nextMonth}&view=${view}`}
             className="rounded-full bg-black/5 px-3.5 py-1.5 text-sm font-bold text-brand-navy transition active:scale-95"
-            aria-label="Next month"
+            aria-label={t(lang, "nextMonth")}
           >
             ›
           </Link>
@@ -104,7 +114,7 @@ export default async function BranchesPage({
         <div className="flex gap-1 rounded-full bg-black/5 p-1 text-xs font-semibold">
           {(
             [
-              ["all", "Both branches"],
+              ["all", t(lang, "bothBranches")],
               ["1", BRANCH_NAMES[1]],
               ["2", BRANCH_NAMES[2]],
             ] as const
@@ -125,8 +135,9 @@ export default async function BranchesPage({
 
         {!monthHasData ? (
           <p className="rounded-2xl bg-brand-surface p-6 text-center text-sm text-brand-muted">
-            No machine data in {monthTitle(month)}. Data arrives from the
-            Match tab&apos;s CSV uploads.
+            {t(lang, "noMachineDataMonth", {
+              month: monthTitle(month, locale),
+            })}
           </p>
         ) : (
           (() => {
@@ -138,12 +149,16 @@ export default async function BranchesPage({
               <div className="grid grid-cols-2 gap-3">
                 <StatCard
                   variant="navy"
-                  label={view === "all" ? "Total Revenue" : "Month Revenue"}
+                  label={
+                    view === "all"
+                      ? t(lang, "totalRevenue")
+                      : t(lang, "monthRevenue")
+                  }
                   value={formatBaht(s.revenue)}
                   caption={
                     view === "all"
                       ? `${BRANCH_NAMES[1]} ${formatBaht(perf.branches[1].revenue)} · ${BRANCH_NAMES[2]} ${formatBaht(perf.branches[2].revenue)}`
-                      : `${s.activeDays} days with data`
+                      : t(lang, "daysWithData", { n: s.activeDays })
                   }
                 />
                 <StatCard
@@ -154,7 +169,7 @@ export default async function BranchesPage({
                         ? "purple"
                         : "orange"
                   }
-                  label="vs Last Month (today)"
+                  label={t(lang, "vsLastMonthToday")}
                   value={
                     s.pctChangeSameDay === null
                       ? "—"
@@ -162,13 +177,20 @@ export default async function BranchesPage({
                   }
                   caption={
                     s.prevRevenueSameDay > 0 && s.sameDayCutoff !== null
-                      ? `${formatBaht(s.prevRevenueSameDay)} by ${monthDayLabel(perf.prevMonth, s.sameDayCutoff)}`
-                      : "no data last month"
+                      ? t(lang, "byDate", {
+                          amt: formatBaht(s.prevRevenueSameDay),
+                          date: monthDayLabel(
+                            perf.prevMonth,
+                            s.sameDayCutoff,
+                            locale,
+                          ),
+                        })
+                      : t(lang, "noDataLastMonth")
                   }
                 />
                 <StatCard
                   variant="white"
-                  label="Avg / Day"
+                  label={t(lang, "avgPerDay")}
                   value={
                     s.avgPerDay !== null
                       ? formatBaht(Math.round(s.avgPerDay))
@@ -183,7 +205,7 @@ export default async function BranchesPage({
                         ? "purple"
                         : "orange"
                   }
-                  label="vs Last Month"
+                  label={t(lang, "vsLastMonth")}
                   value={
                     s.pctChange === null
                       ? "—"
@@ -191,23 +213,29 @@ export default async function BranchesPage({
                   }
                   caption={
                     s.prevRevenue > 0
-                      ? `${formatBaht(s.prevRevenue)} last month`
-                      : "no data last month"
+                      ? t(lang, "lastMonthAmt", {
+                          amt: formatBaht(s.prevRevenue),
+                        })
+                      : t(lang, "noDataLastMonth")
                   }
                 />
                 <StatCard
                   variant="white"
-                  label="Best Day"
+                  label={t(lang, "bestDayCard")}
                   value={s.bestDay ? formatBaht(s.bestDay.revenue) : "—"}
-                  caption={s.bestDay ? formatDay(s.bestDay.date) : undefined}
+                  caption={
+                    s.bestDay ? formatDay(s.bestDay.date, locale) : undefined
+                  }
                 />
                 <StatCard
                   variant="white"
-                  label="Orders"
+                  label={t(lang, "orders")}
                   value={String(s.orders)}
                   caption={
                     s.orders > 0 && s.revenue > 0
-                      ? `≈${formatBaht(Math.round(s.revenue / s.orders))} / order`
+                      ? t(lang, "perOrder", {
+                          amt: formatBaht(Math.round(s.revenue / s.orders)),
+                        })
                       : undefined
                   }
                 />
@@ -224,7 +252,7 @@ export default async function BranchesPage({
         />
         <BranchWeekdayChart
           series={series}
-          weekday={perf.weekday}
+          weekday={weekday}
           stacked={view === "all"}
         />
         <BranchHourlyChart
@@ -236,5 +264,6 @@ export default async function BranchesPage({
       </main>
       <BottomTabBar />
     </div>
+    </I18nProvider>
   );
 }

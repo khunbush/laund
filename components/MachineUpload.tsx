@@ -3,6 +3,7 @@
 import { useActionState, useRef } from "react";
 import { uploadMachineCsv, type UploadState } from "@/app/compare/actions";
 import { formatBaht } from "@/lib/denominations";
+import { useT } from "@/components/I18nProvider";
 
 export function MachineUpload() {
   const [state, action, pending] = useActionState<UploadState, FormData>(
@@ -10,6 +11,7 @@ export function MachineUpload() {
     null,
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const { t, tn } = useT();
 
   return (
     <form
@@ -18,7 +20,7 @@ export function MachineUpload() {
       className="rounded-2xl border border-black/5 bg-brand-surface p-4"
     >
       <h2 className="mb-3 text-sm font-semibold text-brand-navy">
-        Upload machine CSV
+        {t("uploadCsv")}
       </h2>
 
       <div className="flex flex-col gap-2">
@@ -42,7 +44,7 @@ export function MachineUpload() {
           disabled={pending}
           className="rounded-full bg-gradient-to-r from-brand-purple to-brand-orange px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-purple/20 transition active:scale-[0.98] disabled:opacity-60"
         >
-          {pending ? "Importing…" : "Import CSV"}
+          {pending ? t("importing") : t("importCsv")}
         </button>
       </div>
 
@@ -53,16 +55,17 @@ export function MachineUpload() {
       )}
       {state && state.ok && (
         <p className="mt-3 rounded-xl bg-brand-green/10 px-3 py-2 text-xs font-medium text-brand-green-dark">
-          Imported branch {state.summary.branch}:{" "}
-          {state.summary.daysImported} day
-          {state.summary.daysImported === 1 ? "" : "s"} ·{" "}
-          {formatBaht(state.summary.totalRevenue)} · {state.summary.totalTxns}{" "}
-          transactions
+          {t("importResult", {
+            branch: state.summary.branch,
+            days: tn("days", state.summary.daysImported),
+            amt: formatBaht(state.summary.totalRevenue),
+            txns: state.summary.totalTxns,
+          })}
           {state.summary.firstDate
             ? ` (${state.summary.firstDate} → ${state.summary.lastDate})`
             : ""}
           {state.summary.skipped > 0
-            ? ` · ${state.summary.skipped} skipped`
+            ? t("skippedCount", { n: state.summary.skipped })
             : ""}
         </p>
       )}

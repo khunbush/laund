@@ -2,6 +2,7 @@
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { formatBaht } from "@/lib/denominations";
+import { useT } from "@/components/I18nProvider";
 
 export interface DenomSlice {
   label: string;
@@ -10,12 +11,13 @@ export interface DenomSlice {
 }
 
 export function DonutChartWrapper({ data }: { data: DenomSlice[] }) {
+  const { t } = useT();
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
   if (data.length === 0 || total === 0) {
     return (
       <p className="rounded-2xl bg-brand-surface p-6 text-center text-sm text-brand-muted">
-        Not enough data yet to show a denomination mix.
+        {t("donutEmpty")}
       </p>
     );
   }

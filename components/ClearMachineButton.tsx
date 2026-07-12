@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { clearMachineBranch } from "@/app/compare/actions";
+import { useT } from "@/components/I18nProvider";
 
 export function ClearMachineButton({
   branch,
@@ -14,6 +15,7 @@ export function ClearMachineButton({
   lastDate: string;
 }) {
   const router = useRouter();
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(lastDate);
   const [armedAll, setArmedAll] = useState(false);
@@ -48,13 +50,13 @@ export function ClearMachineButton({
           return;
         }
         if (result.deleted === 0) {
-          setError("No data on that date");
+          setError(t("noDataThatDate"));
           return;
         }
         setOpen(false);
         router.refresh();
       } catch {
-        setError("Something went wrong");
+        setError(t("somethingWrong"));
       }
     });
   }
@@ -70,7 +72,7 @@ export function ClearMachineButton({
           open ? "bg-brand-navy text-white" : "bg-black/5 text-brand-muted"
         }`}
       >
-        {open ? "Close" : "Clear"}
+        {open ? t("close") : t("clear")}
       </button>
       {open && (
         <div className="absolute bottom-full right-0 z-20 mb-2 flex w-60 flex-col gap-2 rounded-2xl border border-black/10 bg-brand-surface p-3 shadow-xl">
@@ -78,7 +80,7 @@ export function ClearMachineButton({
             htmlFor={`clear-date-${branch}`}
             className="text-[11px] font-semibold text-brand-muted"
           >
-            Clear a single day
+            {t("clearSingleDay")}
           </label>
           <input
             id={`clear-date-${branch}`}
@@ -98,7 +100,7 @@ export function ClearMachineButton({
             disabled={pending || !date}
             className="rounded-full bg-brand-navy px-3 py-2 text-[11px] font-semibold text-white transition-all active:scale-95 disabled:opacity-50"
           >
-            {pending ? "Clearing…" : "Clear this day"}
+            {pending ? t("clearing") : t("clearThisDay")}
           </button>
           <div className="my-0.5 border-t border-black/5" />
           <button
@@ -112,10 +114,10 @@ export function ClearMachineButton({
             }`}
           >
             {pending
-              ? "Clearing…"
+              ? t("clearing")
               : armedAll
-                ? "Sure? Tap again"
-                : "Clear everything"}
+                ? t("sureTapAgain")
+                : t("clearEverything")}
           </button>
           {error && (
             <p className="text-[11px] font-semibold text-brand-purple-dark">{error}</p>

@@ -4,12 +4,16 @@ import { EditSessionForm } from "@/components/EditSessionForm";
 import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { PaidToggle } from "@/components/PaidToggle";
 import type { DenomCounts } from "@/lib/denominations";
+import { I18nProvider } from "@/components/I18nProvider";
+import { t } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 
 export default async function SessionDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const lang = await getLang();
   const { id } = await params;
   const session = await getSessionById(id);
 
@@ -30,10 +34,11 @@ export default async function SessionDetailPage({
   };
 
   return (
+    <I18nProvider lang={lang}>
     <div className="flex min-h-screen flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-6">
         <div className="mb-4 flex items-center justify-between gap-2 px-1">
-          <h1 className="text-xl font-bold text-brand-navy">Edit Session</h1>
+          <h1 className="text-xl font-bold text-brand-navy">{t(lang, "editSession")}</h1>
           <div className="flex items-center gap-2">
             <PaidToggle sessionId={session.id} paid={session.paid} />
             <DeleteSessionButton sessionId={session.id} redirectTo="/sessions" />
@@ -49,5 +54,6 @@ export default async function SessionDetailPage({
         />
       </main>
     </div>
+    </I18nProvider>
   );
 }

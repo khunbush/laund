@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setPaid } from "@/lib/actions/sessions";
+import { useT } from "@/components/I18nProvider";
 
 export function PaidToggle({
   sessionId,
@@ -12,6 +13,7 @@ export function PaidToggle({
   paid: boolean;
 }) {
   const router = useRouter();
+  const { t } = useT();
   const [pending, startTransition] = useTransition();
   const [optimisticPaid, setOptimisticPaid] = useOptimistic(paid);
 
@@ -42,7 +44,7 @@ export function PaidToggle({
           : "bg-brand-purple/15 text-brand-purple-dark"
       }`}
     >
-      {optimisticPaid ? "✓ Paid" : "Unpaid"}
+      {optimisticPaid ? t("paid") : t("unpaid")}
     </button>
   );
 }

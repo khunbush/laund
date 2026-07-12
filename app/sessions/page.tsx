@@ -4,12 +4,16 @@ import { getUnpaidSummary } from "@/lib/data/dashboard";
 import { SessionsTable } from "@/components/SessionsTable";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { UnpaidBanner } from "@/components/UnpaidBanner";
+import { I18nProvider } from "@/components/I18nProvider";
+import { t } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 
 export default async function SessionsPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
+  const lang = await getLang();
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
   const pageSize = 20;
@@ -20,15 +24,16 @@ export default async function SessionsPage({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
+    <I18nProvider lang={lang}>
     <div className="flex min-h-screen flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-6">
         <div className="mb-4 flex items-center justify-between px-1">
-          <h1 className="text-xl font-bold text-brand-navy">History</h1>
+          <h1 className="text-xl font-bold text-brand-navy">{t(lang, "history")}</h1>
           <a
             href="/api/export"
             className="rounded-full bg-black/5 px-3.5 py-1.5 text-xs font-semibold text-brand-navy/70 transition active:scale-95"
           >
-            ⬇︎ Export CSV
+            {t(lang, "exportCsv")}
           </a>
         </div>
         <div className="mb-3">
@@ -37,7 +42,7 @@ export default async function SessionsPage({
             unpaidCount={unpaid.unpaidCount}
           />
         </div>
-        <SessionsTable sessions={sessions} allowDelete />
+        <SessionsTable sessions={sessions} allowDelete lang={lang} />
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between px-1 text-sm text-brand-muted">
             <Link
@@ -49,11 +54,9 @@ export default async function SessionsPage({
                   : "font-medium text-brand-purple"
               }`}
             >
-              ← Newer
+              {t(lang, "newer")}
             </Link>
-            <span>
-              Page {page} of {totalPages}
-            </span>
+            <span>{t(lang, "pageOf", { p: page, n: totalPages })}</span>
             <Link
               href={`/sessions?page=${Math.min(totalPages, page + 1)}`}
               aria-disabled={page >= totalPages}
@@ -63,12 +66,13 @@ export default async function SessionsPage({
                   : "font-medium text-brand-purple"
               }`}
             >
-              Older →
+              {t(lang, "older")}
             </Link>
           </div>
         )}
       </main>
       <BottomTabBar />
     </div>
+    </I18nProvider>
   );
 }

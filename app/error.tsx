@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { asLang, LANG_COOKIE, t } from "@/lib/i18n";
 
 export default function Error({
   error,
@@ -11,6 +12,14 @@ export default function Error({
   reset: () => void;
 }) {
   const router = useRouter();
+  const lang = asLang(
+    typeof document === "undefined"
+      ? undefined
+      : document.cookie
+          .split("; ")
+          .find((c) => c.startsWith(`${LANG_COOKIE}=`))
+          ?.split("=")[1],
+  );
 
   useEffect(() => {
     // Surfaced in Vercel logs for diagnosis.
@@ -23,10 +32,10 @@ export default function Error({
         ⚠️
       </div>
       <h1 className="mt-4 text-xl font-bold text-brand-navy">
-        Something hiccuped
+        {t(lang, "errTitle")}
       </h1>
       <p className="mt-1 text-sm text-brand-muted">
-        That didn&apos;t load. Your data is safe — try again.
+        {t(lang, "errBody")}
       </p>
       <div className="mt-5 flex gap-3">
         <button
@@ -34,14 +43,14 @@ export default function Error({
           onClick={() => reset()}
           className="rounded-full bg-gradient-to-r from-brand-purple to-brand-orange px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-purple/20 transition active:scale-[0.98]"
         >
-          Try again
+          {t(lang, "tryAgain")}
         </button>
         <button
           type="button"
           onClick={() => router.push("/")}
           className="rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-brand-navy transition active:scale-[0.98]"
         >
-          Go home
+          {t(lang, "goHome")}
         </button>
       </div>
     </main>
