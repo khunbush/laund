@@ -42,8 +42,10 @@ Vercel.
 ## Domain facts
 
 - Branch 1 = "washclub" (English CSV: `No,startDate,startTime,...,Amount`,
-  M/D/Y). Branch 2 = "washclub v2" (Thai CSV, Buddhist years e.g. 2569, only
-  สำเร็จ rows count). Third format: daily summary (`Date,Total,Orders`, used
+  M/D/Y). Branch 2 = "washclub v2" (Thai CSV, Buddhist years e.g. 2569; สำเร็จ
+  AND กำลังทำงาน rows both count — machines still running at the ~midnight
+  export are paid, that-day revenue — other statuses like ยกเลิก are
+  skipped). Third format: daily summary (`Date,Total,Orders`, used
   for the Jan 1–Jul 3 2026 historical backfill — no txn times exist for it).
   All three auto-detected in `lib/machineCsv.ts`.
 - An agent POSTs each day's CSV ~23:50 ICT to
