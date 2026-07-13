@@ -6,16 +6,20 @@ import { prisma } from "@/lib/db";
 import { isAuthenticated } from "@/lib/auth";
 import { computeTotal, EMPTY_COUNTS, type DenomCounts } from "@/lib/denominations";
 
+// Upper bound keeps totalBaht far below Postgres Int range even at ฿1000;
+// a count past this is a typo, rejected with the friendly validation error.
+const count = z.number().int().nonnegative().max(100_000);
+
 const countsSchema = z.object({
-  note1000: z.number().int().nonnegative(),
-  note500: z.number().int().nonnegative(),
-  note100: z.number().int().nonnegative(),
-  note50: z.number().int().nonnegative(),
-  note20: z.number().int().nonnegative(),
-  coin10: z.number().int().nonnegative(),
-  coin5: z.number().int().nonnegative(),
-  coin2: z.number().int().nonnegative(),
-  coin1: z.number().int().nonnegative(),
+  note1000: count,
+  note500: count,
+  note100: count,
+  note50: count,
+  note20: count,
+  coin10: count,
+  coin5: count,
+  coin2: count,
+  coin1: count,
 });
 
 const sessionInputSchema = z.object({
@@ -144,16 +148,20 @@ export async function updateSession(
   const { date, kind, counts, note } = parsed.data;
   const totalBaht = computeTotal(counts);
 
-  await prisma.collectionSession.update({
-    where: { id },
-    data: {
-      date: toDateOnlyUtc(date),
-      kind,
-      ...counts,
-      totalBaht,
-      note: note.length > 0 ? note : null,
-    },
-  });
+  try {
+    await prisma.collectionSession.update({
+      where: { id },
+      data: {
+        date: toDateOnlyUtc(date),
+        kind,
+        ...counts,
+        totalBaht,
+        note: note.length > 0 ? note : null,
+      },
+    });
+  } catch {
+    return { ok: false, error: "Session not found" };
+  }
 
   revalidatePath("/");
   revalidatePath("/sessions");

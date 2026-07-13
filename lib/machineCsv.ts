@@ -5,7 +5,10 @@
 //                          dates Gregorian (7/7/2026), amount = Amount
 //  Branch 2 (washclub v2): เลขอ้างอิง,เวลาที่ทำรายการ,ประเภทงาน,เครื่อง/พนักงาน,สถานะ,ยอดชำระ,ชำระด้วย
 //                          datetime with Buddhist year (7/7/2569), amount = ยอดชำระ,
-//                          only rows with สถานะ = สำเร็จ (success) count.
+//                          rows with สถานะ = สำเร็จ (success) or กำลังทำงาน
+//                          (in progress) count — the export runs near midnight,
+//                          so machines still running are paid, that-day revenue.
+//                          Other statuses (e.g. cancelled) are skipped.
 //  Daily summary:          Date / วันที่, ..., Total / รวม, Orders / จำนวนออเดอร์, ...
 //                          one pre-aggregated row per day (used for historical
 //                          backfills); revenue = Total column, txnCount = Orders.
@@ -33,7 +36,10 @@ export interface ParseResult {
   skipped: number; // rows ignored (bad date/amount, or non-success)
 }
 
-const THAI_SUCCESS = "สำเร็จ";
+// Statuses whose rows count as revenue: completed, plus still-running at
+// export time (paid at start; the nightly export runs near midnight ICT, so
+// these belong to the day being exported and never reappear in a later file).
+const THAI_COUNTED_STATUSES = new Set(["สำเร็จ", "กำลังทำงาน"]);
 
 /**
  * Parse a time cell to HH:mm:ss (24h). Accepts "11:20:58 PM" (branch 1) and
@@ -176,7 +182,7 @@ export function parseMachineCsv(csvText: string): ParseResult {
     const dayFirst = detectDayFirst(dateParts, true); // Thai default D/M/Y
 
     for (const r of rows) {
-      if (idxStatus >= 0 && r[idxStatus] !== THAI_SUCCESS) {
+      if (idxStatus >= 0 && !THAI_COUNTED_STATUSES.has(r[idxStatus] ?? "")) {
         skipped++;
         continue;
       }

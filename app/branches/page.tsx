@@ -9,6 +9,7 @@ import { StatCard } from "@/components/StatCard";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { formatBaht } from "@/lib/denominations";
 import { BRANCH_COLORS } from "@/lib/chartColors";
+import { BRANCH_NAMES } from "@/lib/branchNames";
 import { currentMonthIct } from "@/lib/ict";
 import { I18nProvider } from "@/components/I18nProvider";
 import { dateLocale, DOW_KEYS, t, type Lang } from "@/lib/i18n";
@@ -18,11 +19,6 @@ import { getLang } from "@/lib/i18n-server";
 // maintain, so it must reflect the exact current state, never a cached
 // snapshot.
 export const dynamic = "force-dynamic";
-
-const BRANCH_NAMES: Record<1 | 2, string> = {
-  1: "Marina",
-  2: "LeBush",
-};
 
 type View = "all" | "1" | "2";
 

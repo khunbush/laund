@@ -132,8 +132,10 @@ const en = {
   uploadCsv: "Upload machine CSV",
   importCsv: "Import CSV",
   importing: "Importing…",
-  importResult: "Imported branch {branch}: {days} · {amt} · {txns} transactions",
+  importResult: "Imported {branch}: {days} · {amt} · {txns} transactions",
   skippedCount: " · {n} skipped",
+  wrongBranchCsv:
+    "This file looks like {name}'s export — nothing was imported. Pick {name} and try again.",
   importedSoFar: "Imported so far",
   through: "through {date}",
   noneYet: "none yet",
@@ -322,8 +324,10 @@ const th: Record<MsgKey, string> = {
   uploadCsv: "อัปโหลด CSV เครื่อง",
   importCsv: "นำเข้า CSV",
   importing: "กำลังนำเข้า…",
-  importResult: "นำเข้าสาขา {branch}: {days} · {amt} · {txns} รายการ",
+  importResult: "นำเข้า {branch}: {days} · {amt} · {txns} รายการ",
   skippedCount: " · ข้าม {n} แถว",
+  wrongBranchCsv:
+    "ไฟล์นี้ดูเหมือนเป็นของ {name} — ยังไม่ได้นำเข้าอะไร เลือกสาขา {name} แล้วลองใหม่",
   importedSoFar: "นำเข้าแล้ว",
   through: "ถึง {date}",
   noneYet: "ยังไม่มี",
