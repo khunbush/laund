@@ -1,5 +1,5 @@
 import { isAuthenticated, secretsMatch } from "@/lib/auth";
-import { importMachineCsv } from "@/lib/data/machine";
+import { importMachineCsv, BranchMismatchError } from "@/lib/data/machine";
 import { revalidatePath } from "next/cache";
 
 // A day's report is a few hundred KB at most; anything bigger is a mistake.
@@ -12,7 +12,8 @@ const MAX_BODY_BYTES = 5 * 1024 * 1024;
  *
  * Auth: either the passcode cookie (a logged-in browser) OR a bearer token
  * matching MACHINE_IMPORT_TOKEN (for your export agents). The format is
- * auto-detected from the CSV header, so branch only controls storage labeling.
+ * auto-detected from the CSV header and must belong to the given branch
+ * (400 on mismatch); daily-summary files are accepted for either branch.
  */
 export async function POST(request: Request) {
   const url = new URL(request.url);
@@ -46,7 +47,20 @@ export async function POST(request: Request) {
     return Response.json({ error: "Empty body" }, { status: 400 });
   }
 
-  const summary = await importMachineCsv(branch, csvText);
+  let summary;
+  try {
+    summary = await importMachineCsv(branch, csvText);
+  } catch (err) {
+    if (err instanceof BranchMismatchError) {
+      return Response.json(
+        {
+          error: `CSV format belongs to branch ${err.detectedBranch}, not branch ${branch} — nothing imported`,
+        },
+        { status: 400 },
+      );
+    }
+    throw err;
+  }
   revalidatePath("/compare");
   revalidatePath("/branches");
 

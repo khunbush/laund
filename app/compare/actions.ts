@@ -5,8 +5,12 @@ import { isAuthenticated } from "@/lib/auth";
 import {
   importMachineCsv,
   clearMachineData,
+  BranchMismatchError,
   type ImportSummary,
 } from "@/lib/data/machine";
+import { t } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
+import { BRANCH_NAMES } from "@/lib/branchNames";
 
 export type ClearResult =
   | { ok: true; deleted: number }
@@ -59,7 +63,20 @@ export async function uploadMachineCsv(
   }
 
   const csvText = await file.text();
-  const summary = await importMachineCsv(branch, csvText);
+  let summary: ImportSummary;
+  try {
+    summary = await importMachineCsv(branch, csvText);
+  } catch (err) {
+    if (err instanceof BranchMismatchError) {
+      return {
+        ok: false,
+        error: t(await getLang(), "wrongBranchCsv", {
+          name: BRANCH_NAMES[err.detectedBranch],
+        }),
+      };
+    }
+    throw err;
+  }
   if (summary.daysImported === 0) {
     return {
       ok: false,

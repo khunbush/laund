@@ -69,15 +69,22 @@ function emptyStats(): BranchMonthStats {
 export async function getBranchPerformance(
   month: string,
 ): Promise<BranchPerformance> {
-  const [rows, txns] = await Promise.all([
+  const [rows, txnHours, txnFirst] = await Promise.all([
     prisma.machineDay.findMany({
       orderBy: { date: "asc" },
       select: { branch: true, date: true, revenue: true, txnCount: true },
     }),
-    prisma.machineTxn.findMany({
-      orderBy: { occurredAt: "asc" },
-      select: { branch: true, occurredAt: true, amount: true },
-    }),
+    // Aggregate in SQL: the txn table grows by ~100 rows per day forever, so
+    // fetching every row just to fill 24 hour buckets gets slower each month.
+    // date_part reads the stored as-if-UTC wall-clock hour (= getUTCHours).
+    prisma.$queryRaw<{ branch: number; hour: number; amount: number }[]>`
+      SELECT branch,
+             date_part('hour', "occurredAt")::int AS hour,
+             SUM(amount)::int AS amount
+      FROM "MachineTxn"
+      GROUP BY branch, hour
+    `,
+    prisma.machineTxn.aggregate({ _min: { occurredAt: true } }),
   ]);
 
   const prevMonth = shiftMonth(month, -1);
@@ -201,10 +208,10 @@ export async function getBranchPerformance(
     2: Array.from({ length: 24 }, () => 0),
   };
   const hourlySeen: Record<1 | 2, boolean> = { 1: false, 2: false };
-  for (const t of txns) {
+  for (const t of txnHours) {
     if (t.branch !== 1 && t.branch !== 2) continue;
     const branch = t.branch as 1 | 2;
-    hourlySums[branch][t.occurredAt.getUTCHours()] += t.amount;
+    hourlySums[branch][t.hour] += t.amount;
     hourlySeen[branch] = true;
   }
 
@@ -236,6 +243,6 @@ export async function getBranchPerformance(
       b1: hourlySeen[1] ? hourlySums[1][h] : null,
       b2: hourlySeen[2] ? hourlySums[2][h] : null,
     })),
-    txnSince: txns.length > 0 ? iso(txns[0].occurredAt) : null,
+    txnSince: txnFirst._min.occurredAt ? iso(txnFirst._min.occurredAt) : null,
   };
 }

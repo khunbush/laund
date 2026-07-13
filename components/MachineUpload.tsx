@@ -3,6 +3,7 @@
 import { useActionState, useRef } from "react";
 import { uploadMachineCsv, type UploadState } from "@/app/compare/actions";
 import { formatBaht } from "@/lib/denominations";
+import { BRANCH_NAMES } from "@/lib/branchNames";
 import { useT } from "@/components/I18nProvider";
 
 export function MachineUpload() {
@@ -29,8 +30,8 @@ export function MachineUpload() {
           defaultValue="1"
           className="w-full rounded-xl border border-black/10 bg-black/[0.03] px-3 py-2.5 text-sm font-medium text-brand-navy outline-none focus:border-brand-purple"
         >
-          <option value="1">Marina</option>
-          <option value="2">LeBush</option>
+          <option value="1">{BRANCH_NAMES[1]}</option>
+          <option value="2">{BRANCH_NAMES[2]}</option>
         </select>
         <input
           type="file"
@@ -56,7 +57,9 @@ export function MachineUpload() {
       {state && state.ok && (
         <p className="mt-3 rounded-xl bg-brand-green/10 px-3 py-2 text-xs font-medium text-brand-green-dark">
           {t("importResult", {
-            branch: state.summary.branch,
+            branch:
+              BRANCH_NAMES[state.summary.branch as 1 | 2] ??
+              String(state.summary.branch),
             days: tn("days", state.summary.daysImported),
             amt: formatBaht(state.summary.totalRevenue),
             txns: state.summary.totalTxns,

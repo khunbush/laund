@@ -5,6 +5,7 @@ import { MachineUpload } from "@/components/MachineUpload";
 import { ClearMachineButton } from "@/components/ClearMachineButton";
 import { StatCard } from "@/components/StatCard";
 import { formatBaht } from "@/lib/denominations";
+import { BRANCH_NAMES } from "@/lib/branchNames";
 import { RefreshButton } from "@/components/RefreshButton";
 import { I18nProvider } from "@/components/I18nProvider";
 import { dateLocale, t, tn, type Lang } from "@/lib/i18n";
@@ -88,7 +89,7 @@ function CompareCard({ row, lang }: { row: CompareRow; lang: Lang }) {
 
       {!noData && (
         <p className="mt-2 text-xs text-brand-muted">
-          Marina {formatBaht(row.machineBranch1)} · LeBush{" "}
+          {BRANCH_NAMES[1]} {formatBaht(row.machineBranch1)} · {BRANCH_NAMES[2]}{" "}
           {formatBaht(row.machineBranch2)}
         </p>
       )}
@@ -222,7 +223,7 @@ export default async function ComparePage() {
             {status.map((b) => (
               <div key={b.branch} className="flex items-center justify-between gap-2">
                 <span className="min-w-0 flex-1 text-brand-muted">
-                  {b.branch === 1 ? "Marina" : "LeBush"}
+                  {BRANCH_NAMES[b.branch as 1 | 2] ?? `Branch ${b.branch}`}
                 </span>
                 <span className="text-right font-semibold text-brand-navy">
                   {b.dayCount > 0 ? (

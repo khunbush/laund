@@ -24,10 +24,10 @@ export async function getSessionById(id: string) {
   return prisma.collectionSession.findUnique({ where: { id } });
 }
 
+/** The n most recent sessions, newest first. */
 export async function getRecentSessions(n: number) {
-  const sessions = await prisma.collectionSession.findMany({
+  return prisma.collectionSession.findMany({
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
     take: n,
   });
-  return sessions.reverse();
 }

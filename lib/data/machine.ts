@@ -18,8 +18,22 @@ export interface ImportSummary {
 }
 
 /**
+ * The CSV's detected format belongs to the other branch — importing it would
+ * silently store one branch's revenue under the other. `detectedBranch` is the
+ * branch the file actually belongs to.
+ */
+export class BranchMismatchError extends Error {
+  constructor(public detectedBranch: 1 | 2) {
+    super(`CSV format belongs to branch ${detectedBranch}`);
+    this.name = "BranchMismatchError";
+  }
+}
+
+/**
  * Parse a washclub CSV and upsert one MachineDay row per day for the given
  * branch. Idempotent: re-importing a range replaces those days' totals.
+ * Throws BranchMismatchError (before any write) when the file's detected
+ * format contradicts `branch`; the daily-summary format is branch-agnostic.
  */
 export async function importMachineCsv(
   branch: number,
@@ -27,13 +41,26 @@ export async function importMachineCsv(
 ): Promise<ImportSummary> {
   const parsed = parseMachineCsv(csvText);
 
-  for (const day of parsed.days) {
-    const date = toDateOnlyUtc(day.date);
-    await prisma.machineDay.upsert({
-      where: { branch_date: { branch, date } },
-      create: { branch, date, revenue: day.revenue, txnCount: day.txnCount },
-      update: { revenue: day.revenue, txnCount: day.txnCount },
-    });
+  if (parsed.days.length > 0) {
+    if (parsed.format === "branch1" && branch !== 1) {
+      throw new BranchMismatchError(1);
+    }
+    if (parsed.format === "branch2" && branch !== 2) {
+      throw new BranchMismatchError(2);
+    }
+
+    // One batched transaction instead of a round trip per day — monthly
+    // re-imports are 30+ rows, and every round trip pays Neon latency.
+    await prisma.$transaction(
+      parsed.days.map((day) => {
+        const date = toDateOnlyUtc(day.date);
+        return prisma.machineDay.upsert({
+          where: { branch_date: { branch, date } },
+          create: { branch, date, revenue: day.revenue, txnCount: day.txnCount },
+          update: { revenue: day.revenue, txnCount: day.txnCount },
+        });
+      }),
+    );
   }
 
   // Per-transaction timestamps (transactional formats only). Replace this

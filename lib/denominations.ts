@@ -57,5 +57,7 @@ export function computeTotal(counts: Partial<DenomCounts>): number {
 }
 
 export function formatBaht(amount: number): string {
-  return `฿${Math.round(amount).toLocaleString("en-US")}`;
+  const rounded = Math.round(amount);
+  const sign = rounded < 0 ? "-" : "";
+  return `${sign}฿${Math.abs(rounded).toLocaleString("en-US")}`;
 }

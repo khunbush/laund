@@ -246,7 +246,7 @@ export default async function DashboardPage() {
               {t(lang, "viewAll")}
             </Link>
           </div>
-          <SessionsTable sessions={[...recentSessions].reverse()} lang={lang} />
+          <SessionsTable sessions={recentSessions} lang={lang} />
         </div>
       </main>
       <BottomTabBar />

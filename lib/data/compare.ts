@@ -128,12 +128,16 @@ export async function getComparison(): Promise<CompareResult> {
     const prevDate = isFirst ? null : collectionDays[i - 1].date;
     // Window: day after previous collection through this collection date.
     // For the first collection, start from the comparison baseline (earliest
-    // machine data, but never before COMPARE_START).
-    const windowStart = prevDate
+    // machine data, but never before COMPARE_START). Every start is clamped
+    // to COMPARE_START so a backdated collection can't pull the window into
+    // the historical backfill; a window ending before COMPARE_START then
+    // sums nothing and shows as "no machine data".
+    const rawStart = prevDate
       ? addDays(prevDate, 1)
       : (earliestMachine && baselineStart <= collectedDate
           ? baselineStart
           : collectedDate);
+    const windowStart = rawStart < COMPARE_START ? COMPARE_START : rawStart;
     const windowEnd = collectedDate;
 
     const w = sumWindow(windowStart, windowEnd);
@@ -169,7 +173,10 @@ export async function getComparison(): Promise<CompareResult> {
     const lastCollection = collectionDays.length
       ? collectionDays[collectionDays.length - 1].date
       : null;
-    const since = lastCollection ? addDays(lastCollection, 1) : baselineStart;
+    const rawSince = lastCollection
+      ? addDays(lastCollection, 1)
+      : baselineStart;
+    const since = rawSince < COMPARE_START ? COMPARE_START : rawSince;
     if (since && since <= today) {
       const w = sumWindow(since, today);
       pending = {
