@@ -56,6 +56,17 @@ export function computeTotal(counts: Partial<DenomCounts>): number {
   );
 }
 
+/** True when the counted cash is strictly coins: at least one coin, no banknotes. */
+export function isCoinsOnly(counts: Partial<DenomCounts>): boolean {
+  let coins = 0;
+  let notes = 0;
+  for (const d of DENOMINATIONS) {
+    if (d.kind === "coin") coins += counts[d.key] ?? 0;
+    else notes += counts[d.key] ?? 0;
+  }
+  return coins > 0 && notes === 0;
+}
+
 export function formatBaht(amount: number): string {
   const rounded = Math.round(amount);
   const sign = rounded < 0 ? "-" : "";

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { formatBaht } from "@/lib/denominations";
+import { formatBaht, isCoinsOnly } from "@/lib/denominations";
 import { KIND_EMOJI, type SessionKindValue } from "@/lib/kinds";
-import { dateLocale, KIND_KEYS, t, type Lang } from "@/lib/i18n";
+import { KIND_KEYS, shortDateYear, t, type Lang } from "@/lib/i18n";
 import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { DenomBreakdown } from "@/components/DenomBreakdown";
 import { PaidToggle } from "@/components/PaidToggle";
@@ -23,15 +23,6 @@ export interface SessionRow {
   coin1: number;
 }
 
-function formatDate(date: Date, locale: string) {
-  return date.toLocaleDateString(locale, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 function denomSummary(session: SessionRow, lang: Lang) {
   const parts: string[] = [];
@@ -85,7 +76,10 @@ export function SessionsTable({
           >
             <div className="flex items-center justify-between gap-2">
               <p className="truncate text-sm font-semibold text-brand-navy">
-                {formatDate(session.date, dateLocale(lang))}
+                {/* Deterministic tables, not toLocaleDateString: this renders
+                    client-side under HistoryView, where Node and browser ICU
+                    disagree on th-TH and would break hydration. */}
+                {shortDateYear(lang, session.date, true)}
               </p>
               <p className="shrink-0 font-serif text-2xl leading-6 font-normal text-brand-purple-dark">
                 {formatBaht(session.totalBaht)}
@@ -97,6 +91,11 @@ export function SessionsTable({
             <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-brand-navy/70">
               {KIND_EMOJI[session.kind]} {t(lang, KIND_KEYS[session.kind])}
             </span>
+            {session.kind === "LAUNDRY" && isCoinsOnly(session) && (
+              <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-brand-navy/70">
+                🪙 {t(lang, "coinsOnly")}
+              </span>
+            )}
             <PaidToggle sessionId={session.id} paid={session.paid} />
             <span className="flex-1" />
             {allowDelete && <DeleteSessionButton sessionId={session.id} />}

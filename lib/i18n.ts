@@ -71,6 +71,7 @@ const en = {
   filterPaid: "Paid",
   filterUnpaid: "Unpaid",
   noSessionsFiltered: "No sessions match this filter.",
+  coinsOnly: "Coins",
 
   // Dashboard
   dashboard: "Dashboard",
@@ -270,6 +271,7 @@ const th: Record<MsgKey, string> = {
   filterPaid: "จ่ายแล้ว",
   filterUnpaid: "ยังไม่จ่าย",
   noSessionsFiltered: "ไม่มีรายการตรงกับตัวกรองนี้",
+  coinsOnly: "เหรียญ",
 
   dashboard: "ภาพรวม",
   monthlyReport: "รายงานรายเดือน →",
@@ -471,6 +473,14 @@ export function shortDate(lang: Lang, d: Date, utc = false): string {
   const mon = MONTHS_SHORT[lang][utc ? d.getUTCMonth() : d.getMonth()];
   const day = utc ? d.getUTCDate() : d.getDate();
   return lang === "th" ? `${wd} ${day} ${mon}` : `${wd}, ${mon} ${day}`;
+}
+
+/** "Sat, Jul 12, 2026" / "ส. 12 ก.ค. 2569" (Buddhist year) — stable across
+ * server and browser ICU. */
+export function shortDateYear(lang: Lang, d: Date, utc = false): string {
+  const year = utc ? d.getUTCFullYear() : d.getFullYear();
+  const base = shortDate(lang, d, utc);
+  return lang === "th" ? `${base} ${year + 543}` : `${base}, ${year}`;
 }
 
 // Full weekday names as produced by lib/data/dashboard.ts.
