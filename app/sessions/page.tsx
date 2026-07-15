@@ -1,27 +1,59 @@
 import Link from "next/link";
 import { listSessions } from "@/lib/data/sessions";
 import { getUnpaidSummary } from "@/lib/data/dashboard";
-import { SessionsTable } from "@/components/SessionsTable";
+import { HistoryView } from "@/components/HistoryView";
 import { BottomTabBar } from "@/components/BottomTabBar";
-import { UnpaidBanner } from "@/components/UnpaidBanner";
 import { I18nProvider } from "@/components/I18nProvider";
 import { t } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 
+type PaidFilter = "all" | "paid" | "unpaid";
+
 export default async function SessionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; filter?: string }>;
 }) {
   const lang = await getLang();
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, filter: filterParam } = await searchParams;
+  const filter: PaidFilter =
+    filterParam === "paid" || filterParam === "unpaid" ? filterParam : "all";
   const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
   const pageSize = 20;
   const [{ sessions, total }, unpaid] = await Promise.all([
-    listSessions({ page, pageSize }),
+    listSessions({
+      page,
+      pageSize,
+      paid: filter === "all" ? undefined : filter === "paid",
+    }),
     getUnpaidSummary(),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const filterQuery = filter === "all" ? "" : `&filter=${filter}`;
+
+  const filterBar = (
+    <div className="mb-3 flex gap-1 rounded-full bg-black/5 p-1 text-xs font-semibold">
+      {(
+        [
+          ["all", "filterAll"],
+          ["paid", "filterPaid"],
+          ["unpaid", "filterUnpaid"],
+        ] as const
+      ).map(([f, key]) => (
+        <Link
+          key={f}
+          href={f === "all" ? "/sessions" : `/sessions?filter=${f}`}
+          className={`flex-1 rounded-full px-3 py-1.5 text-center transition ${
+            filter === f
+              ? "bg-white text-brand-navy shadow-sm"
+              : "text-brand-muted"
+          }`}
+        >
+          {t(lang, key)}
+        </Link>
+      ))}
+    </div>
+  );
 
   return (
     <I18nProvider lang={lang}>
@@ -36,17 +68,20 @@ export default async function SessionsPage({
             {t(lang, "exportCsv")}
           </a>
         </div>
-        <div className="mb-3">
-          <UnpaidBanner
-            unpaidTotal={unpaid.unpaidTotal}
-            unpaidCount={unpaid.unpaidCount}
-          />
-        </div>
-        <SessionsTable sessions={sessions} allowDelete lang={lang} />
+        <HistoryView
+          sessions={sessions}
+          unpaidTotal={unpaid.unpaidTotal}
+          unpaidCount={unpaid.unpaidCount}
+          lang={lang}
+          filterBar={filterBar}
+          emptyMessage={
+            filter === "all" ? undefined : t(lang, "noSessionsFiltered")
+          }
+        />
         {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-between px-1 text-sm text-brand-muted">
             <Link
-              href={`/sessions?page=${Math.max(1, page - 1)}`}
+              href={`/sessions?page=${Math.max(1, page - 1)}${filterQuery}`}
               aria-disabled={page <= 1}
               className={`rounded-full px-3 py-1.5 transition active:scale-95 ${
                 page <= 1
@@ -58,7 +93,7 @@ export default async function SessionsPage({
             </Link>
             <span>{t(lang, "pageOf", { p: page, n: totalPages })}</span>
             <Link
-              href={`/sessions?page=${Math.min(totalPages, page + 1)}`}
+              href={`/sessions?page=${Math.min(totalPages, page + 1)}${filterQuery}`}
               aria-disabled={page >= totalPages}
               className={`rounded-full px-3 py-1.5 transition active:scale-95 ${
                 page >= totalPages
