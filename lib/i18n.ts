@@ -67,6 +67,10 @@ const en = {
   notYetPaid: "not yet paid to you",
   sessions_one: "{n} session",
   sessions_other: "{n} sessions",
+  filterAll: "All",
+  filterPaid: "Paid",
+  filterUnpaid: "Unpaid",
+  noSessionsFiltered: "No sessions match this filter.",
 
   // Dashboard
   dashboard: "Dashboard",
@@ -262,6 +266,10 @@ const th: Record<MsgKey, string> = {
   notYetPaid: "ยังไม่ได้รับเงิน",
   sessions_one: "{n} รายการ",
   sessions_other: "{n} รายการ",
+  filterAll: "ทั้งหมด",
+  filterPaid: "จ่ายแล้ว",
+  filterUnpaid: "ยังไม่จ่าย",
+  noSessionsFiltered: "ไม่มีรายการตรงกับตัวกรองนี้",
 
   dashboard: "ภาพรวม",
   monthlyReport: "รายงานรายเดือน →",

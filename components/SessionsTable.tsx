@@ -56,15 +56,17 @@ export function SessionsTable({
   sessions,
   allowDelete = false,
   lang,
+  emptyMessage,
 }: {
   sessions: SessionRow[];
   allowDelete?: boolean;
   lang: Lang;
+  emptyMessage?: string;
 }) {
   if (sessions.length === 0) {
     return (
       <p className="rounded-2xl bg-brand-surface p-6 text-center text-sm text-brand-muted">
-        {t(lang, "noSessions")}
+        {emptyMessage ?? t(lang, "noSessions")}
       </p>
     );
   }

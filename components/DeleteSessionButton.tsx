@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteSession } from "@/lib/actions/sessions";
 import { useT } from "@/components/I18nProvider";
+import { useUnpaidSummaryNotify } from "@/components/UnpaidSummaryContext";
 
 export function DeleteSessionButton({
   sessionId,
@@ -14,6 +15,7 @@ export function DeleteSessionButton({
 }) {
   const router = useRouter();
   const { t } = useT();
+  const notifyUnpaidSummary = useUnpaidSummaryNotify();
   const [armed, setArmed] = useState(false);
   const [pending, startTransition] = useTransition();
   const disarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -35,6 +37,10 @@ export function DeleteSessionButton({
     }
     startTransition(async () => {
       try {
+        notifyUnpaidSummary?.(sessionId, "deleted");
+        // deleteSession revalidates this route, so the fresh page ships back
+        // in the action response itself; on failure the optimistic banner
+        // reverts as the transition ends.
         const result = await deleteSession(sessionId);
         if (!result.ok) {
           setArmed(false);
@@ -42,8 +48,6 @@ export function DeleteSessionButton({
         }
         if (redirectTo) {
           router.push(redirectTo);
-        } else {
-          router.refresh();
         }
       } catch {
         setArmed(false);

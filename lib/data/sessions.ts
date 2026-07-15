@@ -4,17 +4,22 @@ import { prisma } from "@/lib/db";
 export async function listSessions({
   page = 1,
   pageSize = 20,
+  paid,
 }: {
   page?: number;
   pageSize?: number;
+  /** Filter by paid state; omit for all sessions. */
+  paid?: boolean;
 } = {}) {
+  const where = paid === undefined ? undefined : { paid };
   const [sessions, total] = await Promise.all([
     prisma.collectionSession.findMany({
+      where,
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.collectionSession.count(),
+    prisma.collectionSession.count({ where }),
   ]);
 
   return { sessions, total };

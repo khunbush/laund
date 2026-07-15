@@ -1,9 +1,9 @@
 "use client";
 
 import { useOptimistic, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { setPaid } from "@/lib/actions/sessions";
 import { useT } from "@/components/I18nProvider";
+import { useUnpaidSummaryNotify } from "@/components/UnpaidSummaryContext";
 
 export function PaidToggle({
   sessionId,
@@ -12,19 +12,20 @@ export function PaidToggle({
   sessionId: string;
   paid: boolean;
 }) {
-  const router = useRouter();
   const { t } = useT();
+  const notifyUnpaidSummary = useUnpaidSummaryNotify();
   const [pending, startTransition] = useTransition();
   const [optimisticPaid, setOptimisticPaid] = useOptimistic(paid);
 
   function toggle() {
+    const next = !optimisticPaid;
     startTransition(async () => {
       try {
-        setOptimisticPaid(!optimisticPaid);
-        const result = await setPaid(sessionId, !optimisticPaid);
-        if (result.ok) {
-          router.refresh();
-        }
+        setOptimisticPaid(next);
+        notifyUnpaidSummary?.(sessionId, next ? "paid" : "unpaid");
+        // setPaid revalidates this route, so the fresh page ships back in the
+        // action response itself — no follow-up refresh needed.
+        await setPaid(sessionId, next);
       } catch {
         // Optimistic state auto-reverts when the transition ends without a
         // committed refresh; nothing else to do.
