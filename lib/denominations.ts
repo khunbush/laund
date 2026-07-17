@@ -56,6 +56,15 @@ export function computeTotal(counts: Partial<DenomCounts>): number {
   );
 }
 
+/** Baht value of just the coin denominations in the counts. */
+export function computeCoinTotal(counts: Partial<DenomCounts>): number {
+  return DENOMINATIONS.reduce(
+    (sum, d) =>
+      d.kind === "coin" ? sum + (counts[d.key] ?? 0) * d.value : sum,
+    0,
+  );
+}
+
 /** True when the counted cash is strictly coins: at least one coin, no banknotes. */
 export function isCoinsOnly(counts: Partial<DenomCounts>): boolean {
   let coins = 0;

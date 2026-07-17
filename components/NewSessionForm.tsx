@@ -74,6 +74,10 @@ export function NewSessionForm() {
     setDrafts((prev) => ({ ...prev, [key]: "" }));
   }
 
+  function quickAdd(key: DenomKey) {
+    setBank((prev) => ({ ...prev, [key]: prev[key] + 100 }));
+  }
+
   function recall(key: DenomKey) {
     setDrafts((prev) => ({
       ...prev,
@@ -104,6 +108,7 @@ export function NewSessionForm() {
         onDraftChange={(v) => setDrafts((prev) => ({ ...prev, [d.key]: v }))}
         onCommit={() => commit(d.key)}
         onRecall={() => recall(d.key)}
+        onQuickAdd={() => quickAdd(d.key)}
         muted={mutedRow}
       />
     );

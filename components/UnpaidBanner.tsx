@@ -6,9 +6,12 @@ import { useT } from "@/components/I18nProvider";
 export function UnpaidBanner({
   unpaidTotal,
   unpaidCount,
+  unpaidExclCoins,
 }: {
   unpaidTotal: number;
   unpaidCount: number;
+  /** When provided, a small "(… excluding coins)" line renders under the total. */
+  unpaidExclCoins?: number;
 }) {
   const { t, tn } = useT();
   if (unpaidCount === 0) {
@@ -28,6 +31,11 @@ export function UnpaidBanner({
         <p className="text-xs font-medium text-brand-purple-dark/80">
           {t("notYetPaid")}
         </p>
+        {unpaidExclCoins !== undefined && (
+          <p className="text-xs font-medium text-brand-purple-dark/60">
+            ({formatBaht(unpaidExclCoins)} {t("exclCoins")})
+          </p>
+        )}
       </div>
       <span className="rounded-full bg-brand-purple/15 px-3 py-1 text-xs font-bold text-brand-purple-dark">
         {tn("sessions", unpaidCount)}

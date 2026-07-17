@@ -13,7 +13,8 @@ export function parseDraft(draft: string): number {
  * banks it and empties the box for the next stack, and the chip shows the
  * banked running count (tap the chip to pull it back into the box to fix a
  * mistake). What gets submitted is always bank + whatever is in the box, so
- * an un-banked final stack still counts on save.
+ * an un-banked final stack still counts on save. The +100 button banks a full
+ * 100-stack in one tap (the usual counting unit); odd stacks go via the box.
  */
 export function DenominationInput({
   name,
@@ -25,6 +26,7 @@ export function DenominationInput({
   onDraftChange,
   onCommit,
   onRecall,
+  onQuickAdd,
   muted = false,
 }: {
   name: string;
@@ -36,6 +38,7 @@ export function DenominationInput({
   onDraftChange: (draft: string) => void;
   onCommit: () => void;
   onRecall: () => void;
+  onQuickAdd: () => void;
   muted?: boolean;
 }) {
   const { t } = useT();
@@ -78,6 +81,18 @@ export function DenominationInput({
           )}
         </div>
       </div>
+      <button
+        type="button"
+        onClick={onQuickAdd}
+        aria-label={`Add 100 × ${label} baht to count`}
+        className={`shrink-0 rounded-full px-2 py-2 text-xs font-bold transition active:scale-90 ${
+          unit === "note"
+            ? "bg-brand-purple/10 text-brand-purple-dark"
+            : "bg-brand-orange/10 text-brand-orange-dark"
+        }`}
+      >
+        +100
+      </button>
       <input
         type="number"
         inputMode="numeric"

@@ -82,6 +82,10 @@ export function EditSessionForm({
     setBank((prev) => ({ ...prev, [key]: 0 }));
   }
 
+  function quickAdd(key: DenomKey) {
+    setBank((prev) => ({ ...prev, [key]: prev[key] + 100 }));
+  }
+
   function renderRow(d: (typeof DENOMINATIONS)[number]) {
     return (
       <DenominationInput
@@ -95,6 +99,7 @@ export function EditSessionForm({
         onDraftChange={(v) => setDrafts((prev) => ({ ...prev, [d.key]: v }))}
         onCommit={() => commit(d.key)}
         onRecall={() => recall(d.key)}
+        onQuickAdd={() => quickAdd(d.key)}
       />
     );
   }
