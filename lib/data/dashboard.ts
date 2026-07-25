@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db";
-import { DENOMINATIONS, computeCoinTotal } from "@/lib/denominations";
+import { DENOMINATIONS, computeSmallCoinTotal } from "@/lib/denominations";
 import { DENOM_COLORS, OTHER_COLOR } from "@/lib/chartColors";
 import { computeProjections } from "@/lib/projections";
 import { ictNow, todayIct } from "@/lib/ict";
@@ -47,12 +47,11 @@ async function getAllSessions() {
 export async function getUnpaidSummary() {
   const result = await prisma.collectionSession.aggregate({
     where: { paid: false },
-    _sum: { totalBaht: true, coin10: true, coin5: true, coin2: true, coin1: true },
+    _sum: { totalBaht: true, coin5: true, coin2: true, coin1: true },
     _count: true,
   });
   const unpaidTotal = result._sum.totalBaht ?? 0;
-  const unpaidCoins = computeCoinTotal({
-    coin10: result._sum.coin10 ?? 0,
+  const unpaidSmallCoins = computeSmallCoinTotal({
     coin5: result._sum.coin5 ?? 0,
     coin2: result._sum.coin2 ?? 0,
     coin1: result._sum.coin1 ?? 0,
@@ -60,7 +59,7 @@ export async function getUnpaidSummary() {
   return {
     unpaidTotal,
     unpaidCount: result._count,
-    unpaidExclCoins: unpaidTotal - unpaidCoins,
+    unpaidExclCoins: unpaidTotal - unpaidSmallCoins,
   };
 }
 

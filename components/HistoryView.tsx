@@ -7,7 +7,7 @@ import {
   UnpaidSummaryContext,
   type SessionChange,
 } from "@/components/UnpaidSummaryContext";
-import { computeCoinTotal } from "@/lib/denominations";
+import { computeSmallCoinTotal } from "@/lib/denominations";
 import type { Lang } from "@/lib/i18n";
 
 export function HistoryView({
@@ -39,7 +39,7 @@ export function HistoryView({
   function onSessionChange(sessionId: string, change: SessionChange) {
     const session = sessions.find((s) => s.id === sessionId);
     if (!session) return;
-    const exclCoins = session.totalBaht - computeCoinTotal(session);
+    const exclCoins = session.totalBaht - computeSmallCoinTotal(session);
     if (change === "paid") {
       applyDelta({ amount: -session.totalBaht, amountExclCoins: -exclCoins, count: -1 });
     } else if (change === "unpaid") {
@@ -64,6 +64,7 @@ export function HistoryView({
         allowDelete
         lang={lang}
         emptyMessage={emptyMessage}
+        initialCount={5}
       />
     </UnpaidSummaryContext.Provider>
   );

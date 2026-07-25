@@ -7,6 +7,7 @@ import { StatCard } from "@/components/StatCard";
 import { formatBaht } from "@/lib/denominations";
 import { BRANCH_NAMES } from "@/lib/branchNames";
 import { RefreshButton } from "@/components/RefreshButton";
+import { ShowAllList } from "@/components/ShowAllList";
 import { I18nProvider } from "@/components/I18nProvider";
 import { dateLocale, t, tn, type Lang } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
@@ -184,13 +185,14 @@ export default async function ComparePage() {
               </div>
             )}
 
-            <div className="flex flex-col gap-2">
-              {comparison.rows
+            <ShowAllList
+              initialCount={5}
+              items={comparison.rows
                 .filter((row) => row.machineTotal > 0)
                 .map((row) => (
                   <CompareCard key={row.dateKey} row={row} lang={lang} />
                 ))}
-            </div>
+            />
 
             {comparison.rows.some((row) => row.machineTotal === 0) && (
               <details className="rounded-2xl border border-black/5 bg-brand-surface">
