@@ -56,11 +56,14 @@ export function computeTotal(counts: Partial<DenomCounts>): number {
   );
 }
 
-/** Baht value of just the coin denominations in the counts. */
-export function computeCoinTotal(counts: Partial<DenomCounts>): number {
+/** Baht value of the small coins (฿5/฿2/฿1). ฿10 coins are deliberately left
+ * out: they count as bankable money, so "excluding coins" figures keep them. */
+export function computeSmallCoinTotal(counts: Partial<DenomCounts>): number {
   return DENOMINATIONS.reduce(
     (sum, d) =>
-      d.kind === "coin" ? sum + (counts[d.key] ?? 0) * d.value : sum,
+      d.kind === "coin" && d.value < 10
+        ? sum + (counts[d.key] ?? 0) * d.value
+        : sum,
     0,
   );
 }

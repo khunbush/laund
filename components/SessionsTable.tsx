@@ -5,6 +5,7 @@ import { KIND_KEYS, shortDateYear, t, type Lang } from "@/lib/i18n";
 import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { DenomBreakdown } from "@/components/DenomBreakdown";
 import { PaidToggle } from "@/components/PaidToggle";
+import { ShowAllList } from "@/components/ShowAllList";
 
 export interface SessionRow {
   id: string;
@@ -48,11 +49,14 @@ export function SessionsTable({
   allowDelete = false,
   lang,
   emptyMessage,
+  initialCount,
 }: {
   sessions: SessionRow[];
   allowDelete?: boolean;
   lang: Lang;
   emptyMessage?: string;
+  /** When set, collapse to this many cards with a "Show all" toggle. */
+  initialCount?: number;
 }) {
   if (sessions.length === 0) {
     return (
@@ -62,46 +66,47 @@ export function SessionsTable({
     );
   }
 
-  return (
-    <div className="flex flex-col gap-2">
-      {sessions.map((session) => (
-        <div
-          key={session.id}
-          className="rounded-2xl border border-black/5 bg-brand-surface p-4 transition-transform active:scale-[0.99]"
-        >
-          <Link
-            href={`/sessions/${session.id}`}
-            className="block"
-            prefetch={true}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="truncate text-sm font-semibold text-brand-navy">
-                {/* Deterministic tables, not toLocaleDateString: this renders
-                    client-side under HistoryView, where Node and browser ICU
-                    disagree on th-TH and would break hydration. */}
-                {shortDateYear(lang, session.date, true)}
-              </p>
-              <p className="shrink-0 font-serif text-2xl leading-6 font-normal text-brand-purple-dark">
-                {formatBaht(session.totalBaht)}
-              </p>
-            </div>
-          </Link>
-          <DenomBreakdown summary={denomSummary(session, lang)} />
-          <div className="mt-2.5 flex items-center gap-2">
-            <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-brand-navy/70">
-              {KIND_EMOJI[session.kind]} {t(lang, KIND_KEYS[session.kind])}
-            </span>
-            {session.kind === "LAUNDRY" && isCoinsOnly(session) && (
-              <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-brand-navy/70">
-                🪙 {t(lang, "coinsOnly")}
-              </span>
-            )}
-            <PaidToggle sessionId={session.id} paid={session.paid} />
-            <span className="flex-1" />
-            {allowDelete && <DeleteSessionButton sessionId={session.id} />}
-          </div>
+  const cards = sessions.map((session) => (
+    <div
+      key={session.id}
+      className="rounded-2xl border border-black/5 bg-brand-surface p-4 transition-transform active:scale-[0.99]"
+    >
+      <Link
+        href={`/sessions/${session.id}`}
+        className="block"
+        prefetch={true}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-sm font-semibold text-brand-navy">
+            {/* Deterministic tables, not toLocaleDateString: this renders
+                client-side under HistoryView, where Node and browser ICU
+                disagree on th-TH and would break hydration. */}
+            {shortDateYear(lang, session.date, true)}
+          </p>
+          <p className="shrink-0 font-serif text-2xl leading-6 font-normal text-brand-purple-dark">
+            {formatBaht(session.totalBaht)}
+          </p>
         </div>
-      ))}
+      </Link>
+      <DenomBreakdown summary={denomSummary(session, lang)} />
+      <div className="mt-2.5 flex items-center gap-2">
+        <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-brand-navy/70">
+          {KIND_EMOJI[session.kind]} {t(lang, KIND_KEYS[session.kind])}
+        </span>
+        {session.kind === "LAUNDRY" && isCoinsOnly(session) && (
+          <span className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-brand-navy/70">
+            🪙 {t(lang, "coinsOnly")}
+          </span>
+        )}
+        <PaidToggle sessionId={session.id} paid={session.paid} />
+        <span className="flex-1" />
+        {allowDelete && <DeleteSessionButton sessionId={session.id} />}
+      </div>
     </div>
-  );
+  ));
+
+  if (initialCount !== undefined) {
+    return <ShowAllList items={cards} initialCount={initialCount} />;
+  }
+  return <div className="flex flex-col gap-2">{cards}</div>;
 }

@@ -53,7 +53,7 @@ export default async function DashboardPage() {
   const [stats, projections, recentSessions, unpaid] = await Promise.all([
     getDashboardStats(),
     getProjections(),
-    getRecentSessions(8),
+    getRecentSessions(5),
     getUnpaidSummary(),
   ]);
 

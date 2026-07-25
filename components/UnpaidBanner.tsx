@@ -10,7 +10,8 @@ export function UnpaidBanner({
 }: {
   unpaidTotal: number;
   unpaidCount: number;
-  /** When provided, a small "(… excluding coins)" line renders under the total. */
+  /** When provided, a small "(… excluding small coins)" line renders under
+   * the total. ฿10 coins are included in the figure; only ฿5/฿2/฿1 are not. */
   unpaidExclCoins?: number;
 }) {
   const { t, tn } = useT();
