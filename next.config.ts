@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    // The Dashboard tab used to land on all-time stats with the monthly report
+    // at /report; the two swapped places. Keep the old path working for links
+    // the installed PWA may still hold (the ?month= query rides along).
+    return [{ source: "/report", destination: "/dashboard", permanent: false }];
+  },
   async headers() {
     return [
       {

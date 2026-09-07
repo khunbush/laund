@@ -23,10 +23,10 @@ Vercel.
 |---|---|---|
 | Home | `/` | New session form (denomination counts, no DB read) |
 | History | `/sessions` | Session cards, paid toggle, delete, CSV export |
-| Dashboard | `/dashboard` | Aggregates of counted cash (type-blind, by day) |
+| Dashboard | `/dashboard` | Monthly report for one month (default: current, ‹ › to page back) |
 | Match | `/compare` | Counted cash vs machine revenue windows; CSV upload; per-day/all clear |
 | Branches | `/branches` | Machine-data-only performance: views Both(stacked totals)/B1/B2, month nav, daily/monthly/weekday/hourly charts |
-| (Report) | `/report` | Monthly report, linked from Dashboard |
+| (All time) | `/dashboard/all-time` | Lifetime aggregates of counted cash (type-blind, by day), linked top-right from Dashboard. `/report` redirects to `/dashboard` |
 
 ## Data model (prisma/schema.prisma)
 

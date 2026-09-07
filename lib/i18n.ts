@@ -79,7 +79,9 @@ const en = {
 
   // Dashboard
   dashboard: "Dashboard",
-  monthlyReport: "Monthly report →",
+  allTime: "All Time",
+  allTimeLink: "All time →",
+  monthlyLink: "Monthly →",
   totalCollected: "Total Collected",
   avgPerCollectionDay: "Avg / Collection Day",
   days_one: "{n} day",
@@ -282,7 +284,9 @@ const th: Record<MsgKey, string> = {
   coinsOnly: "เหรียญ",
 
   dashboard: "ภาพรวม",
-  monthlyReport: "รายงานรายเดือน →",
+  allTime: "ภาพรวมทั้งหมด",
+  allTimeLink: "ทั้งหมด →",
+  monthlyLink: "รายเดือน →",
   totalCollected: "เก็บทั้งหมด",
   avgPerCollectionDay: "เฉลี่ย/วันเก็บ",
   days_one: "{n} วัน",

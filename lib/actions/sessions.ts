@@ -82,6 +82,7 @@ export async function createSession(
   revalidatePath("/");
   revalidatePath("/sessions");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/all-time");
 
   return { ok: true, id: session.id };
 }
@@ -103,6 +104,7 @@ export async function setPaid(
   revalidatePath("/sessions");
   revalidatePath(`/sessions/${id}`);
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/all-time");
 
   return { ok: true, id };
 }
@@ -121,6 +123,7 @@ export async function deleteSession(id: string): Promise<SessionActionResult> {
   revalidatePath("/");
   revalidatePath("/sessions");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/all-time");
 
   return { ok: true, id };
 }
@@ -167,6 +170,7 @@ export async function updateSession(
   revalidatePath("/sessions");
   revalidatePath(`/sessions/${id}`);
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/all-time");
 
   return { ok: true, id };
 }
