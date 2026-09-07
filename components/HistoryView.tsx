@@ -15,6 +15,7 @@ export function HistoryView({
   unpaidTotal,
   unpaidCount,
   unpaidExclCoins,
+  unpaidSmallCoins,
   lang,
   emptyMessage,
   filterBar,
@@ -23,29 +24,56 @@ export function HistoryView({
   unpaidTotal: number;
   unpaidCount: number;
   unpaidExclCoins: number;
+  unpaidSmallCoins: number;
   lang: Lang;
   emptyMessage?: string;
   filterBar?: ReactNode;
 }) {
   const [unpaid, applyDelta] = useOptimistic(
-    { total: unpaidTotal, count: unpaidCount, exclCoins: unpaidExclCoins },
-    (cur, delta: { amount: number; amountExclCoins: number; count: number }) => ({
+    {
+      total: unpaidTotal,
+      count: unpaidCount,
+      exclCoins: unpaidExclCoins,
+      smallCoins: unpaidSmallCoins,
+    },
+    (
+      cur,
+      delta: {
+        amount: number;
+        amountExclCoins: number;
+        amountSmallCoins: number;
+        count: number;
+      },
+    ) => ({
       total: cur.total + delta.amount,
       count: cur.count + delta.count,
       exclCoins: cur.exclCoins + delta.amountExclCoins,
+      smallCoins: cur.smallCoins + delta.amountSmallCoins,
     }),
   );
 
   function onSessionChange(sessionId: string, change: SessionChange) {
     const session = sessions.find((s) => s.id === sessionId);
     if (!session) return;
-    const exclCoins = session.totalBaht - computeSmallCoinTotal(session);
+    const smallCoins = computeSmallCoinTotal(session);
+    const exclCoins = session.totalBaht - smallCoins;
+    const remove = {
+      amount: -session.totalBaht,
+      amountExclCoins: -exclCoins,
+      amountSmallCoins: -smallCoins,
+      count: -1,
+    };
     if (change === "paid") {
-      applyDelta({ amount: -session.totalBaht, amountExclCoins: -exclCoins, count: -1 });
+      applyDelta(remove);
     } else if (change === "unpaid") {
-      applyDelta({ amount: session.totalBaht, amountExclCoins: exclCoins, count: 1 });
+      applyDelta({
+        amount: session.totalBaht,
+        amountExclCoins: exclCoins,
+        amountSmallCoins: smallCoins,
+        count: 1,
+      });
     } else if (!session.paid) {
-      applyDelta({ amount: -session.totalBaht, amountExclCoins: -exclCoins, count: -1 });
+      applyDelta(remove);
     }
   }
 
@@ -56,6 +84,7 @@ export function HistoryView({
           unpaidTotal={unpaid.total}
           unpaidCount={unpaid.count}
           unpaidExclCoins={unpaid.exclCoins}
+          unpaidSmallCoins={unpaid.smallCoins}
         />
       </div>
       {filterBar}

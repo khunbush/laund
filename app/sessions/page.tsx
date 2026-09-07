@@ -73,6 +73,7 @@ export default async function SessionsPage({
           unpaidTotal={unpaid.unpaidTotal}
           unpaidCount={unpaid.unpaidCount}
           unpaidExclCoins={unpaid.unpaidExclCoins}
+          unpaidSmallCoins={unpaid.unpaidSmallCoins}
           lang={lang}
           filterBar={filterBar}
           emptyMessage={

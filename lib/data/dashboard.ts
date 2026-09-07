@@ -60,6 +60,7 @@ export async function getUnpaidSummary() {
     unpaidTotal,
     unpaidCount: result._count,
     unpaidExclCoins: unpaidTotal - unpaidSmallCoins,
+    unpaidSmallCoins,
   };
 }
 

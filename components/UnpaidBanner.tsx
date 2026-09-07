@@ -7,12 +7,16 @@ export function UnpaidBanner({
   unpaidTotal,
   unpaidCount,
   unpaidExclCoins,
+  unpaidSmallCoins,
 }: {
   unpaidTotal: number;
   unpaidCount: number;
   /** When provided, a small "(… excluding small coins)" line renders under
    * the total. ฿10 coins are included in the figure; only ฿5/฿2/฿1 are not. */
   unpaidExclCoins?: number;
+  /** When provided, a "(… in small coins)" line renders under that — the
+   * ฿5/฿2/฿1 half of the same total. */
+  unpaidSmallCoins?: number;
 }) {
   const { t, tn } = useT();
   if (unpaidCount === 0) {
@@ -35,6 +39,11 @@ export function UnpaidBanner({
         {unpaidExclCoins !== undefined && (
           <p className="text-xs font-medium text-brand-purple-dark/60">
             ({formatBaht(unpaidExclCoins)} {t("exclCoins")})
+          </p>
+        )}
+        {unpaidSmallCoins !== undefined && (
+          <p className="text-xs font-medium text-brand-purple-dark/60">
+            ({formatBaht(unpaidSmallCoins)} {t("inSmallCoins")})
           </p>
         )}
       </div>
