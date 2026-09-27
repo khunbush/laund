@@ -1,6 +1,6 @@
 import { getComparison, type CompareRow } from "@/lib/data/compare";
-import { getMachineStatus } from "@/lib/data/machine";
-import { BottomTabBar } from "@/components/BottomTabBar";
+import { getMachineStatus, staleBranches } from "@/lib/data/machine";
+import { todayIct } from "@/lib/ict";
 import { MachineUpload } from "@/components/MachineUpload";
 import { ClearMachineButton } from "@/components/ClearMachineButton";
 import { StatCard } from "@/components/StatCard";
@@ -136,7 +136,7 @@ export default async function ComparePage() {
 
   return (
     <I18nProvider lang={lang}>
-    <div className="flex min-h-screen flex-1 flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-6 pb-6">
         <div className="flex items-center justify-between px-1">
           <h1 className="text-xl font-bold text-brand-navy">
@@ -144,6 +144,19 @@ export default async function ComparePage() {
           </h1>
           <RefreshButton />
         </div>
+
+        {staleBranches(status, todayIct()).map((b) => (
+          <p
+            key={b.branch}
+            className="rounded-2xl bg-brand-orange/10 px-4 py-3 text-sm font-medium text-brand-orange-dark"
+          >
+            ⚠️{" "}
+            {t(lang, "uploadMissing", {
+              name: BRANCH_NAMES[b.branch],
+              date: fmtDate(b.lastDate, locale),
+            })}
+          </p>
+        ))}
 
         {!comparison.hasMachineData ? (
           <p className="rounded-2xl bg-brand-surface p-6 text-center text-sm text-brand-muted">
@@ -256,7 +269,6 @@ export default async function ComparePage() {
           </div>
         </div>
       </main>
-      <BottomTabBar />
     </div>
     </I18nProvider>
   );

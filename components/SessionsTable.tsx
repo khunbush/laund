@@ -71,11 +71,10 @@ export function SessionsTable({
       key={session.id}
       className="rounded-2xl border border-black/5 bg-brand-surface p-4 transition-transform active:scale-[0.99]"
     >
-      <Link
-        href={`/sessions/${session.id}`}
-        className="block"
-        prefetch={true}
-      >
+      {/* Default (auto) prefetch only: prefetch={true} rendered every visible
+          card's full detail page — up to 20 DB-backed renders per History
+          visit, competing with the page actually being opened. */}
+      <Link href={`/sessions/${session.id}`} className="block">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate text-sm font-semibold text-brand-navy">
             {/* Deterministic tables, not toLocaleDateString: this renders

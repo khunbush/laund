@@ -1,7 +1,10 @@
 "use client";
 
-import { useOptimistic, type ReactNode } from "react";
+import { useOptimistic, useTransition } from "react";
 import { UnpaidBanner } from "@/components/UnpaidBanner";
+import { MarkAllPaidButton } from "@/components/MarkAllPaidButton";
+import { PaidFilterBar, type PaidFilter } from "@/components/PaidFilterBar";
+import { markAllPaid } from "@/lib/actions/sessions";
 import { SessionsTable, type SessionRow } from "@/components/SessionsTable";
 import {
   UnpaidSummaryContext,
@@ -18,7 +21,7 @@ export function HistoryView({
   unpaidSmallCoins,
   lang,
   emptyMessage,
-  filterBar,
+  filter,
 }: {
   sessions: SessionRow[];
   unpaidTotal: number;
@@ -27,7 +30,7 @@ export function HistoryView({
   unpaidSmallCoins: number;
   lang: Lang;
   emptyMessage?: string;
-  filterBar?: ReactNode;
+  filter: PaidFilter;
 }) {
   const [unpaid, applyDelta] = useOptimistic(
     {
@@ -51,6 +54,26 @@ export function HistoryView({
       smallCoins: cur.smallCoins + delta.amountSmallCoins,
     }),
   );
+
+  const [markingAll, startMarkAll] = useTransition();
+
+  function onMarkAllPaid() {
+    startMarkAll(async () => {
+      // Banner drops to "All paid up" at once; the action's revalidation
+      // ships the refreshed cards back in its response.
+      applyDelta({
+        amount: -unpaid.total,
+        amountExclCoins: -unpaid.exclCoins,
+        amountSmallCoins: -unpaid.smallCoins,
+        count: -unpaid.count,
+      });
+      try {
+        await markAllPaid();
+      } catch {
+        // Optimistic banner reverts when the transition ends.
+      }
+    });
+  }
 
   function onSessionChange(sessionId: string, change: SessionChange) {
     const session = sessions.find((s) => s.id === sessionId);
@@ -86,8 +109,13 @@ export function HistoryView({
           unpaidExclCoins={unpaid.exclCoins}
           unpaidSmallCoins={unpaid.smallCoins}
         />
+        {unpaid.count > 1 && (
+          <div className="mt-2">
+            <MarkAllPaidButton onConfirm={onMarkAllPaid} pending={markingAll} />
+          </div>
+        )}
       </div>
-      {filterBar}
+      <PaidFilterBar filter={filter} lang={lang} />
       <SessionsTable
         sessions={sessions}
         allowDelete

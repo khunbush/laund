@@ -135,32 +135,42 @@ export interface BranchStatus {
 }
 
 export async function getMachineStatus(): Promise<BranchStatus[]> {
-  const out: BranchStatus[] = [];
-  for (const branch of [1, 2]) {
-    const [agg, first, last] = await Promise.all([
-      prisma.machineDay.aggregate({
-        where: { branch },
-        _sum: { revenue: true },
-        _count: true,
-      }),
-      prisma.machineDay.findFirst({
-        where: { branch },
-        orderBy: { date: "asc" },
-        select: { date: true },
-      }),
-      prisma.machineDay.findFirst({
-        where: { branch },
-        orderBy: { date: "desc" },
-        select: { date: true },
-      }),
-    ]);
-    out.push({
+  // One grouped query instead of three per branch run back to back — each
+  // round trip to Neon costs more than the aggregation itself.
+  const groups = await prisma.machineDay.groupBy({
+    by: ["branch"],
+    _sum: { revenue: true },
+    _count: true,
+    _min: { date: true },
+    _max: { date: true },
+  });
+  return [1, 2].map((branch) => {
+    const g = groups.find((x) => x.branch === branch);
+    return {
       branch,
-      dayCount: agg._count,
-      firstDate: first?.date.toISOString().slice(0, 10) ?? null,
-      lastDate: last?.date.toISOString().slice(0, 10) ?? null,
-      totalRevenue: agg._sum.revenue ?? 0,
-    });
-  }
-  return out;
+      dayCount: g?._count ?? 0,
+      firstDate: g?._min.date?.toISOString().slice(0, 10) ?? null,
+      lastDate: g?._max.date?.toISOString().slice(0, 10) ?? null,
+      totalRevenue: g?._sum.revenue ?? 0,
+    };
+  });
+}
+
+/**
+ * Branches whose nightly upload looks missing: they have data, but nothing for
+ * yesterday (ICT) or later. The agent posts each day's CSV at ~23:50, so by
+ * any time today yesterday's row should exist.
+ */
+export function staleBranches(
+  status: BranchStatus[],
+  todayIso: string,
+): { branch: 1 | 2; lastDate: string }[] {
+  const yesterday = new Date(
+    new Date(`${todayIso}T00:00:00Z`).getTime() - 24 * 60 * 60 * 1000,
+  )
+    .toISOString()
+    .slice(0, 10);
+  return status
+    .filter((s) => s.lastDate !== null && s.lastDate < yesterday)
+    .map((s) => ({ branch: s.branch as 1 | 2, lastDate: s.lastDate! }));
 }

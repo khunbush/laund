@@ -1,7 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 import { DENOMINATIONS, computeSmallCoinTotal } from "@/lib/denominations";
-import { DENOM_COLORS, OTHER_COLOR } from "@/lib/chartColors";
 import { computeProjections } from "@/lib/projections";
 import { ictNow, todayIct } from "@/lib/ict";
 
@@ -109,24 +108,15 @@ export async function getDashboardStats() {
       gaps.reduce((a, b) => a + b, 0) / gaps.length;
   }
 
-  const rawDenomValues = DENOMINATIONS.map((d) => ({
+  // Value carried by each denomination, in fixed note→coin order. Every
+  // denomination with money in it gets its own row (the page labels each one),
+  // so rare ones like ฿2 no longer fold into an unlabeled "Other".
+  const denominationMix = DENOMINATIONS.map((d) => ({
     key: d.key,
-    label: `${d.kind === "note" ? "Notes" : "Coins"} ฿${d.label}`,
+    label: d.label,
+    kind: d.kind,
     value: allSessions.reduce((sum, s) => sum + s[d.key] * d.value, 0),
-  }));
-
-  const otherValue = rawDenomValues
-    .filter((d) => !DENOM_COLORS[d.key])
-    .reduce((sum, d) => sum + d.value, 0);
-
-  const denominationMix = [
-    ...rawDenomValues
-      .filter((d) => DENOM_COLORS[d.key] && d.value > 0)
-      .map((d) => ({ label: d.label, value: d.value, color: DENOM_COLORS[d.key]! })),
-    ...(otherValue > 0
-      ? [{ label: "Other", value: otherValue, color: OTHER_COLOR }]
-      : []),
-  ];
+  })).filter((d) => d.value > 0);
 
   const monthlyTotalsMap = new Map<string, number>();
   for (const s of allSessions) {

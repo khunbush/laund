@@ -3,15 +3,18 @@
 import { useEffect, useState } from "react";
 
 export function SplashScreen() {
-  // Starts visible (SSR'd) so it paints on the very first frame, then fades.
+  // Starts visible (SSR'd) so it paints on the very first frame, then fades
+  // the moment the app has hydrated — no fixed delay on top of the real load.
+  // Never intercepts taps (pointer-events-none throughout), so the page
+  // underneath is usable as soon as it's interactive.
   const [hidden, setHidden] = useState(false);
   const [removed, setRemoved] = useState(false);
 
   useEffect(() => {
-    const fade = setTimeout(() => setHidden(true), 500);
-    const gone = setTimeout(() => setRemoved(true), 1000);
+    const frame = requestAnimationFrame(() => setHidden(true));
+    const gone = setTimeout(() => setRemoved(true), 400);
     return () => {
-      clearTimeout(fade);
+      cancelAnimationFrame(frame);
       clearTimeout(gone);
     };
   }, []);
@@ -21,8 +24,8 @@ export function SplashScreen() {
   return (
     <div
       aria-hidden
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-navy transition-opacity duration-500 motion-reduce:transition-none ${
-        hidden ? "pointer-events-none opacity-0" : "opacity-100"
+      className={`pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-navy transition-opacity duration-300 motion-reduce:transition-none ${
+        hidden ? "opacity-0" : "opacity-100"
       }`}
     >
       <div className="pointer-events-none absolute -right-16 -top-10 h-56 w-56 rounded-full bg-brand-purple/30 blur-3xl" />

@@ -1,13 +1,17 @@
+import type { ReactNode } from "react";
 import { formatBaht } from "@/lib/denominations";
 
 export function RunningTotalHero({
   label,
   dateLabel,
   total,
+  children,
 }: {
   label: string;
   dateLabel: string;
   total: number;
+  /** Extra lines under the total (e.g. the machine figure while counting). */
+  children?: ReactNode;
 }) {
   return (
     <div className="relative overflow-hidden rounded-3xl bg-brand-navy p-6 text-white shadow-xl shadow-black/20">
@@ -22,6 +26,7 @@ export function RunningTotalHero({
       <p className="relative mt-3 font-serif text-4xl font-normal tracking-tight">
         {formatBaht(total)}
       </p>
+      {children}
     </div>
   );
 }

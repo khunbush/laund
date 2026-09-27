@@ -6,7 +6,6 @@ import {
   BranchWeekdayChart,
 } from "@/components/BranchChart";
 import { StatCard } from "@/components/StatCard";
-import { BottomTabBar } from "@/components/BottomTabBar";
 import { formatBaht } from "@/lib/denominations";
 import { BRANCH_COLORS } from "@/lib/chartColors";
 import { BRANCH_NAMES } from "@/lib/branchNames";
@@ -85,8 +84,14 @@ export default async function BranchesPage({
 
   return (
     <I18nProvider lang={lang}>
-    <div className="flex min-h-screen flex-1 flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-6 pb-6">
+        <div className="px-1">
+          <h1 className="text-xl font-bold text-brand-navy">
+            {t(lang, "tabBranches")}
+          </h1>
+        </div>
+
         <div className="flex items-center justify-between px-1">
           <Link
             href={`/branches?month=${perf.prevMonth}&view=${view}`}
@@ -95,9 +100,9 @@ export default async function BranchesPage({
           >
             ‹
           </Link>
-          <h1 className="text-lg font-bold text-brand-navy">
+          <h2 className="text-lg font-bold text-brand-navy">
             {monthTitle(month, locale)}
-          </h1>
+          </h2>
           <Link
             href={`/branches?month=${perf.nextMonth}&view=${view}`}
             className="rounded-full bg-black/5 px-3.5 py-1.5 text-sm font-bold text-brand-navy transition active:scale-95"
@@ -193,27 +198,14 @@ export default async function BranchesPage({
                       : "—"
                   }
                 />
+                {/* Full last-month total as a plain figure, not a second %:
+                    a month-to-date vs full-month % sat next to the same-day
+                    % and read as a contradiction (+3% beside −14%). */}
                 <StatCard
-                  variant={
-                    s.pctChange === null
-                      ? "white"
-                      : s.pctChange >= 0
-                        ? "purple"
-                        : "orange"
-                  }
-                  label={t(lang, "vsLastMonth")}
-                  value={
-                    s.pctChange === null
-                      ? "—"
-                      : `${s.pctChange >= 0 ? "+" : ""}${s.pctChange.toFixed(0)}%`
-                  }
-                  caption={
-                    s.prevRevenue > 0
-                      ? t(lang, "lastMonthAmt", {
-                          amt: formatBaht(s.prevRevenue),
-                        })
-                      : t(lang, "noDataLastMonth")
-                  }
+                  variant="white"
+                  label={t(lang, "lastMonthFull")}
+                  value={s.prevRevenue > 0 ? formatBaht(s.prevRevenue) : "—"}
+                  caption={monthTitle(perf.prevMonth, locale)}
                 />
                 <StatCard
                   variant="white"
@@ -226,7 +218,7 @@ export default async function BranchesPage({
                 <StatCard
                   variant="white"
                   label={t(lang, "orders")}
-                  value={String(s.orders)}
+                  value={s.orders.toLocaleString("en-US")}
                   caption={
                     s.orders > 0 && s.revenue > 0
                       ? t(lang, "perOrder", {
@@ -258,7 +250,6 @@ export default async function BranchesPage({
           stacked={view === "all"}
         />
       </main>
-      <BottomTabBar />
     </div>
     </I18nProvider>
   );

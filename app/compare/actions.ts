@@ -36,6 +36,7 @@ export async function clearMachineBranch(
   const deleted = await clearMachineData(branch, date);
   revalidatePath("/compare");
   revalidatePath("/branches");
+  revalidatePath("/"); // Home shows the machine total since the last count
   return { ok: true, deleted };
 }
 
@@ -86,5 +87,6 @@ export async function uploadMachineCsv(
 
   revalidatePath("/compare");
   revalidatePath("/branches");
+  revalidatePath("/"); // Home shows the machine total since the last count
   return { ok: true, summary };
 }

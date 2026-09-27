@@ -1,19 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { formatBaht } from "@/lib/denominations";
-import { AXIS_MUTED, GRIDLINE, SEQUENTIAL_BAR_COLOR } from "@/lib/chartColors";
+import dynamic from "next/dynamic";
 import { dateLocale } from "@/lib/i18n";
 import { useT } from "@/components/I18nProvider";
+
+// Recharts loads as its own chunk so the page hydrates first; the placeholder
+// matches the plot height so nothing shifts when it arrives.
+const TotalBars = dynamic(() => import("@/components/charts/TotalBars"), {
+  ssr: false,
+  loading: () => <div className="h-56 w-full" />,
+});
 
 export interface DailyPoint {
   date: string;
@@ -28,14 +25,6 @@ export interface MonthlyPoint {
 function formatShortDate(iso: string, locale: string) {
   const d = new Date(`${iso}T00:00:00Z`);
   return d.toLocaleDateString(locale, { month: "short", day: "numeric", timeZone: "UTC" });
-}
-
-function formatAxisValue(v: number) {
-  if (v >= 1000) {
-    const thousands = v / 1000;
-    return `฿${thousands % 1 === 0 ? thousands : thousands.toFixed(1)}k`;
-  }
-  return `฿${Math.round(v)}`;
 }
 
 function formatMonth(key: string, locale: string) {
@@ -95,42 +84,7 @@ export function BarChartWrapper({
           {t("noSessionsYet")}
         </p>
       ) : (
-        <div className="h-56 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke={GRIDLINE} />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 11, fill: AXIS_MUTED }}
-                axisLine={{ stroke: GRIDLINE }}
-                tickLine={false}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: AXIS_MUTED }}
-                axisLine={false}
-                tickLine={false}
-                width={48}
-                tickFormatter={formatAxisValue}
-                allowDecimals={false}
-              />
-              <Tooltip
-                formatter={(value) => [formatBaht(Number(value ?? 0)), t("chartTotal")]}
-                contentStyle={{
-                  borderRadius: 12,
-                  border: "1px solid rgba(11,11,11,0.08)",
-                  fontSize: 13,
-                }}
-              />
-              <Bar
-                dataKey="value"
-                fill={SEQUENTIAL_BAR_COLOR}
-                radius={[4, 4, 0, 0]}
-                maxBarSize={28}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <TotalBars data={data} valueLabel={t("chartTotal")} />
       )}
     </div>
   );

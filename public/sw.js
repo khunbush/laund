@@ -1,5 +1,6 @@
-const CACHE_VERSION = "laund-shell-v2";
-const SHELL_URLS = ["/login", "/manifest.json"];
+const CACHE_VERSION = "laund-shell-v3";
+const OFFLINE_URL = "/offline.html";
+const SHELL_URLS = [OFFLINE_URL, "/manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -40,8 +41,9 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Full-page navigations: network-first, but if the network fails OR returns a
-  // server error, fall back to the cached app shell instead of letting iOS show
-  // its native "This page couldn't load" screen.
+  // server error, show the cached offline page (with a Try again button)
+  // instead of iOS's native "This page couldn't load" screen. It used to fall
+  // back to the cached login page, which looked like being logged out.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -52,8 +54,7 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(async () => {
-          const cached =
-            (await caches.match(request)) || (await caches.match("/login"));
+          const cached = await caches.match(OFFLINE_URL);
           return (
             cached ||
             new Response("Offline", {

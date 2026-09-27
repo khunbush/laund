@@ -63,6 +63,7 @@ export async function POST(request: Request) {
   }
   revalidatePath("/compare");
   revalidatePath("/branches");
+  revalidatePath("/"); // Home shows the machine total since the last count
 
   return Response.json({ ok: true, ...summary });
 }

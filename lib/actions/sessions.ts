@@ -174,3 +174,24 @@ export async function updateSession(
 
   return { ok: true, id };
 }
+
+/** Settle up in one tap: mark every unpaid session as paid. */
+export async function markAllPaid(): Promise<
+  { ok: true; updated: number } | { ok: false; error: string }
+> {
+  if (!(await isAuthenticated())) {
+    return { ok: false, error: "Unauthorized" };
+  }
+
+  const { count } = await prisma.collectionSession.updateMany({
+    where: { paid: false },
+    data: { paid: true },
+  });
+
+  revalidatePath("/sessions");
+  revalidatePath("/sessions/[id]", "page");
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/all-time");
+
+  return { ok: true, updated: count };
+}

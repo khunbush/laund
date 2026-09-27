@@ -35,7 +35,7 @@ export default async function SessionDetailPage({
 
   return (
     <I18nProvider lang={lang}>
-    <div className="flex min-h-screen flex-1 flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-6">
         <div className="mb-4 flex items-center justify-between gap-2 px-1">
           <h1 className="text-xl font-bold text-brand-navy">{t(lang, "editSession")}</h1>

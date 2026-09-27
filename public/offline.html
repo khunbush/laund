@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2c2418">
+<title>Laund · Offline</title>
+<style>
+  :root { --bg: #eae0cd; --ink: #2c2418; --muted: #8a7d68; --accent: #b1471e; --clay: #c47d43; --surface: #fbf7ee; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .card { max-width: 340px; width: 100%; }
+  .logo {
+    width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 18px;
+    background: linear-gradient(135deg, #c05423, #9c3c17); color: var(--surface);
+    display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700;
+  }
+  h1 { font-size: 20px; margin: 0 0 6px; }
+  p { font-size: 14px; line-height: 1.45; color: var(--muted); margin: 0 0 4px; }
+  button {
+    margin-top: 22px; border: 0; border-radius: 999px; padding: 14px 32px;
+    font-size: 15px; font-weight: 600; color: #fff;
+    background: linear-gradient(90deg, var(--accent), var(--clay));
+    box-shadow: 0 8px 18px -4px rgba(177, 71, 30, 0.35);
+  }
+  button:active { transform: scale(0.98); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">฿</div>
+    <h1>Can’t reach Laund</h1>
+    <p>You’re offline or the server didn’t answer. Your unsaved count on Home is kept on this phone.</p>
+    <p lang="th">เชื่อมต่อไม่ได้ ยอดนับที่ยังไม่บันทึกยังอยู่ในเครื่อง</p>
+    <button type="button" onclick="location.reload()">Try again · ลองใหม่</button>
+  </div>
+  <script>
+    // Come back by itself as soon as the connection returns.
+    window.addEventListener("online", function () { location.reload(); });
+  </script>
+</body>
+</html>
