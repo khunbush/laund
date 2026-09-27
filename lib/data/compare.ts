@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 import { todayIct } from "@/lib/ict";
+import { getMachineStatus, staleBranches } from "@/lib/data/machine";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -196,5 +197,50 @@ export async function getComparison(): Promise<CompareResult> {
     totalCounted,
     totalMachine,
     totalDiff: totalCounted - totalMachine,
+  };
+}
+
+export interface PendingMachine {
+  since: string; // day after the last laundry collection
+  through: string; // latest machine data inside the window
+  total: number;
+  /** Branches whose nightly upload looks missing (no row for yesterday). */
+  stale: { branch: 1 | 2; lastDate: string }[];
+}
+
+/**
+ * Machine revenue earned since the last laundry collection, for the Home
+ * screen to show while counting. Two small queries (not getComparison's full
+ * table scans) because Home is the most-opened screen. Null when there is no
+ * machine data at all.
+ */
+export async function getPendingMachine(): Promise<PendingMachine | null> {
+  const [last, status] = await Promise.all([
+    prisma.collectionSession.findFirst({
+      where: { kind: "LAUNDRY" },
+      orderBy: { date: "desc" },
+      select: { date: true },
+    }),
+    getMachineStatus(),
+  ]);
+  const earliest = status
+    .map((s) => s.firstDate)
+    .filter((d): d is string => d !== null)
+    .sort()[0];
+  if (!earliest) return null;
+
+  const rawSince = last ? addDays(iso(last.date), 1) : earliest;
+  const since = rawSince < COMPARE_START ? COMPARE_START : rawSince;
+  const agg = await prisma.machineDay.aggregate({
+    where: { date: { gte: new Date(`${since}T00:00:00Z`) } },
+    _sum: { revenue: true },
+    _max: { date: true },
+  });
+
+  return {
+    since,
+    through: agg._max.date ? iso(agg._max.date) : since,
+    total: agg._sum.revenue ?? 0,
+    stale: staleBranches(status, todayIct()),
   };
 }

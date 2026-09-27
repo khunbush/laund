@@ -21,7 +21,7 @@ Vercel.
 
 | Tab | Route | What it does |
 |---|---|---|
-| Home | `/` | New session form (denomination counts, no DB read) |
+| Home | `/` | New session form (denomination counts; draft kept in localStorage; machine total since last collection streams in via Suspense — the form never waits on the DB) |
 | History | `/sessions` | Session cards, paid toggle, delete, CSV export |
 | Dashboard | `/dashboard` | Monthly report for one month (default: current, ‹ › to page back) |
 | Match | `/compare` | Counted cash vs machine revenue windows; CSV upload; per-day/all clear |
@@ -54,14 +54,22 @@ Vercel.
   uncounted on Jul 3, so Match comparison windows never reach into the
   backfill. The Branches tab intentionally uses ALL machine data.
 - Branch identity colors are fixed in `lib/chartColors.ts` `BRANCH_COLORS`
-  (B1 purple, B2 dark orange) — never reassign by rank.
+  (B1 Marina terracotta, B2 LeBush forest green) — never reassign by rank.
 
 ## Conventions
 
 - Server components + server actions; every machine-data mutation calls
-  `revalidatePath` for `/compare` AND `/branches`.
+  `revalidatePath` for `/compare`, `/branches` AND `/` (Home streams the
+  machine total since the last collection via `getPendingMachine`).
 - Machine/live pages export `dynamic = "force-dynamic"`; every tab route has
   a `loading.tsx` skeleton (dead taps feel like bugs on the phone).
+- `BottomTabBar` is rendered once in `app/layout.tsx` (hidden on `/login`) —
+  pages and `loading.tsx` files must NOT render it. It publishes its height
+  as the `--tabbar-h` CSS var (Home's pinned Save bar sits on it).
+- Recharts is lazy-loaded (`next/dynamic`, `components/charts/*`) with a
+  same-height placeholder — keep new charts that way.
+- Home's in-progress count persists in localStorage (`laund:count-draft:v1`)
+  until saved or cleared.
 - Auth: `proxy.ts` gates everything by cookie except `/login`, `api/backup`,
   `api/machine-import` (those carry bearer tokens). Env: `APP_PASSCODE`,
   `COOKIE_SECRET`, `DATABASE_URL`, `MACHINE_IMPORT_TOKEN`, `CRON_SECRET`.
@@ -73,6 +81,8 @@ Vercel.
 
 ## Git / deploy
 
+- Functions run in `sin1` (Singapore, `vercel.json` `regions`) next to the
+  Neon database (also Singapore) — keep them in the same region.
 - Default branch: `claude/main`. Vercel (project `laund`, team `bushy`)
   deploys production from it — merged PR = live in ~1 min. Deploys from any
   other branch are previews only (the production-branch setting must stay
@@ -81,7 +91,9 @@ Vercel.
   schema changes ship as committed migration files (create with
   `prisma migrate dev` against the local DB below).
 - The PWA service worker caches the shell — after a deploy the user must
-  fully close and reopen the app (sometimes twice) to see changes.
+  fully close and reopen the app (sometimes twice) to see changes. When a
+  navigation fails it serves `public/offline.html` (bump `CACHE_VERSION` in
+  `public/sw.js` when changing it).
 - Owner prefers: small PRs into `claude/main`, squash-merge, verified
   end-to-end before pushing.
 
@@ -102,8 +114,10 @@ DATABASE_URL="postgresql://laund@127.0.0.1:5433/laund" COOKIE_SECRET=test \
 - Drive with Playwright: `chromium.launch({ executablePath: "/opt/pw-browsers/chromium" })`.
 - Use `http://localhost:3100`, NOT `127.0.0.1` (dev server blocks cross-origin
   assets → page never hydrates).
-- Login page has a ~1s splash overlay that swallows clicks — wait before
-  filling the passcode. Recharts bars animate in — wait ~2-3s or screenshot
+- The splash overlay fades right after hydration and never takes taps, but
+  wait ~1s after load before filling the passcode so the page is hydrated.
+  The Next dev-tools "N" badge covers the Home tab in dev — click tabs via
+  `el.click()` in `evaluate` if Playwright reports it intercepting. Recharts bars animate in — wait ~2-3s or screenshot
   the chart card element, not fullPage.
 - `next build` fails at prerender without a reachable DB — that's expected in
   the container; `tsc --noEmit` + dev-server e2e is the verification bar.

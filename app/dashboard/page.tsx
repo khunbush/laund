@@ -3,12 +3,11 @@ import { getMonthlyReport } from "@/lib/data/reports";
 import { getUnpaidSummary } from "@/lib/data/dashboard";
 import { CalendarHeatmap } from "@/components/CalendarHeatmap";
 import { StatCard } from "@/components/StatCard";
-import { BottomTabBar } from "@/components/BottomTabBar";
 import { UnpaidBanner } from "@/components/UnpaidBanner";
 import { I18nProvider } from "@/components/I18nProvider";
 import { formatBaht } from "@/lib/denominations";
 import { KIND_EMOJI, type SessionKindValue } from "@/lib/kinds";
-import { currentMonthIct } from "@/lib/ict";
+import { currentMonthIct, todayIct } from "@/lib/ict";
 import { dateLocale, KIND_KEYS, t, tn } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
 
@@ -24,6 +23,15 @@ function monthTitle(month: string, locale: string) {
   return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString(locale, {
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function monthDayLabel(month: string, day: number, locale: string) {
+  const [y, m] = month.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, day)).toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
     timeZone: "UTC",
   });
 }
@@ -49,8 +57,13 @@ export default async function DashboardPage({
     ? monthParam!
     : currentMonthIct();
 
+  const today = todayIct();
+  const isCurrentMonth = month === today.slice(0, 7);
   const [report, unpaid] = await Promise.all([
-    getMonthlyReport(month),
+    getMonthlyReport(
+      month,
+      isCurrentMonth ? Number(today.slice(8, 10)) : undefined,
+    ),
     getUnpaidSummary(),
   ]);
   const [year, monthNum] = month.split("-").map(Number);
@@ -59,7 +72,7 @@ export default async function DashboardPage({
 
   return (
     <I18nProvider lang={lang}>
-    <div className="flex min-h-screen flex-1 flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-6 pb-6">
         <div className="flex items-center justify-between px-1">
           <h1 className="text-xl font-bold text-brand-navy">
@@ -120,18 +133,27 @@ export default async function DashboardPage({
                       ? "purple"
                       : "orange"
                 }
-                label={t(lang, "vsLastMonth")}
+                label={
+                  report.prevCutoff === null
+                    ? t(lang, "vsLastMonth")
+                    : t(lang, "vsLastMonthToday")
+                }
                 value={
                   report.pctChange === null
                     ? "—"
                     : `${report.pctChange >= 0 ? "+" : ""}${report.pctChange.toFixed(0)}%`
                 }
                 caption={
-                  report.prevTotal > 0
-                    ? t(lang, "lastMonthAmt", {
-                        amt: formatBaht(report.prevTotal),
-                      })
-                    : t(lang, "noDataLastMonth")
+                  report.prevTotal <= 0
+                    ? t(lang, "noDataLastMonth")
+                    : report.prevCutoff === null
+                      ? t(lang, "lastMonthAmt", {
+                          amt: formatBaht(report.prevTotal),
+                        })
+                      : t(lang, "byDate", {
+                          amt: formatBaht(report.prevTotal),
+                          date: monthDayLabel(report.prevMonth, report.prevCutoff, locale),
+                        })
                 }
               />
               <StatCard
@@ -213,7 +235,6 @@ export default async function DashboardPage({
           </>
         )}
       </main>
-      <BottomTabBar />
     </div>
     </I18nProvider>
   );

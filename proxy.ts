@@ -23,10 +23,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // api/backup and api/machine-import are excluded: they are called by
-  // Vercel Cron / your export agents and carry their own bearer-token auth
-  // instead of the passcode cookie.
+  // offline.html is excluded so the service worker caches the real page, not
+  // a login redirect. api/backup and api/machine-import are excluded: they are
+  // called by Vercel Cron / your export agents and carry their own
+  // bearer-token auth instead of the passcode cookie.
   matcher: [
-    "/((?!_next/static|_next/image|manifest.json|sw.js|icons|splash|favicon.ico|icon.png|apple-icon.png|api/backup|api/machine-import).*)",
+    "/((?!_next/static|_next/image|manifest.json|sw.js|offline.html|icons|splash|favicon.ico|icon.png|apple-icon.png|api/backup|api/machine-import).*)",
   ],
 };

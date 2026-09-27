@@ -2,12 +2,10 @@ import Link from "next/link";
 import { listSessions } from "@/lib/data/sessions";
 import { getUnpaidSummary } from "@/lib/data/dashboard";
 import { HistoryView } from "@/components/HistoryView";
-import { BottomTabBar } from "@/components/BottomTabBar";
+import type { PaidFilter } from "@/components/PaidFilterBar";
 import { I18nProvider } from "@/components/I18nProvider";
 import { t } from "@/lib/i18n";
 import { getLang } from "@/lib/i18n-server";
-
-type PaidFilter = "all" | "paid" | "unpaid";
 
 export default async function SessionsPage({
   searchParams,
@@ -31,33 +29,9 @@ export default async function SessionsPage({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const filterQuery = filter === "all" ? "" : `&filter=${filter}`;
 
-  const filterBar = (
-    <div className="mb-3 flex gap-1 rounded-full bg-black/5 p-1 text-xs font-semibold">
-      {(
-        [
-          ["all", "filterAll"],
-          ["paid", "filterPaid"],
-          ["unpaid", "filterUnpaid"],
-        ] as const
-      ).map(([f, key]) => (
-        <Link
-          key={f}
-          href={f === "all" ? "/sessions" : `/sessions?filter=${f}`}
-          className={`flex-1 rounded-full px-3 py-1.5 text-center transition ${
-            filter === f
-              ? "bg-white text-brand-navy shadow-sm"
-              : "text-brand-muted"
-          }`}
-        >
-          {t(lang, key)}
-        </Link>
-      ))}
-    </div>
-  );
-
   return (
     <I18nProvider lang={lang}>
-    <div className="flex min-h-screen flex-1 flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col px-4 pt-6">
         <div className="mb-4 flex items-center justify-between px-1">
           <h1 className="text-xl font-bold text-brand-navy">{t(lang, "history")}</h1>
@@ -75,7 +49,7 @@ export default async function SessionsPage({
           unpaidExclCoins={unpaid.unpaidExclCoins}
           unpaidSmallCoins={unpaid.unpaidSmallCoins}
           lang={lang}
-          filterBar={filterBar}
+          filter={filter}
           emptyMessage={
             filter === "all" ? undefined : t(lang, "noSessionsFiltered")
           }
@@ -108,7 +82,6 @@ export default async function SessionsPage({
           </div>
         )}
       </main>
-      <BottomTabBar />
     </div>
     </I18nProvider>
   );

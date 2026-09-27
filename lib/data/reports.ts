@@ -16,10 +16,25 @@ export function shiftMonth(month: string, delta: number): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-export async function getMonthlyReport(month: string) {
+/**
+ * @param sameDayCutoff For the month in progress, the day-of-month to compare
+ *   through: last month is then summed only up to that day, so "vs last month"
+ *   compares equal slices instead of a partial month against a full one
+ *   (which reads as a big drop every early month). Omit for past months.
+ */
+export async function getMonthlyReport(month: string, sameDayCutoff?: number) {
   const { start, end } = monthRange(month);
   const prevMonth = shiftMonth(month, -1);
   const prev = monthRange(prevMonth);
+  // Clamp: the cutoff comes from this month and may not exist last month
+  // (e.g. the 31st vs a 30-day month).
+  const [py, pm] = prevMonth.split("-").map(Number);
+  const prevCutoff =
+    sameDayCutoff === undefined
+      ? null
+      : Math.min(sameDayCutoff, new Date(Date.UTC(py, pm, 0)).getUTCDate());
+  const prevEnd =
+    prevCutoff === null ? prev.end : new Date(Date.UTC(py, pm - 1, prevCutoff + 1));
 
   const [sessions, prevAgg] = await Promise.all([
     prisma.collectionSession.findMany({
@@ -28,7 +43,7 @@ export async function getMonthlyReport(month: string) {
       select: { date: true, totalBaht: true, kind: true, paid: true },
     }),
     prisma.collectionSession.aggregate({
-      where: { date: { gte: prev.start, lt: prev.end } },
+      where: { date: { gte: prev.start, lt: prevEnd } },
       _sum: { totalBaht: true },
     }),
   ]);
@@ -84,6 +99,8 @@ export async function getMonthlyReport(month: string) {
     unpaidTotal,
     bestDay,
     prevTotal,
+    /** Day of last month prevTotal runs through; null = the full month. */
+    prevCutoff,
     pctChange,
     dailyTotals,
   };

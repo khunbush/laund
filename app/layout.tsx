@@ -4,6 +4,9 @@ import { ClientPwaRegister } from "@/components/ClientPwaRegister";
 import { WarmupPing } from "@/components/WarmupPing";
 import { SplashScreen } from "@/components/SplashScreen";
 import { AppleSplashLinks } from "@/components/AppleSplashLinks";
+import { BottomTabBar } from "@/components/BottomTabBar";
+import { I18nProvider } from "@/components/I18nProvider";
+import { getLang } from "@/lib/i18n-server";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -29,6 +32,7 @@ export const metadata: Metadata = {
     title: "Laund",
   },
   icons: {
+    icon: "/icons/icon-192.png",
     apple: "/icons/apple-touch-icon.png",
   },
 };
@@ -40,14 +44,16 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const lang = await getLang();
+
   return (
     <html
-      lang="en"
+      lang={lang}
       className={`${jakarta.variable} ${serif.variable} h-full antialiased`}
     >
       <head>
@@ -56,6 +62,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <SplashScreen />
         {children}
+        <I18nProvider lang={lang}>
+          <BottomTabBar />
+        </I18nProvider>
         <ClientPwaRegister />
         <WarmupPing />
       </body>

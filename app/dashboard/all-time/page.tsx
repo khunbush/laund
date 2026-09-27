@@ -2,9 +2,8 @@ import { getDashboardStats, getProjections } from "@/lib/data/dashboard";
 import { getRecentSessions } from "@/lib/data/sessions";
 import { StatCard } from "@/components/StatCard";
 import { BarChartWrapper } from "@/components/BarChartWrapper";
-import { DonutChartWrapper } from "@/components/DonutChartWrapper";
+import { DenomMix } from "@/components/DenomMix";
 import { SessionsTable } from "@/components/SessionsTable";
-import { BottomTabBar } from "@/components/BottomTabBar";
 import { CalendarHeatmap } from "@/components/CalendarHeatmap";
 import { formatBaht } from "@/lib/denominations";
 import Link from "next/link";
@@ -57,7 +56,7 @@ export default async function AllTimePage() {
 
   return (
     <I18nProvider lang={lang}>
-    <div className="flex min-h-screen flex-1 flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <main className="safe-top mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pt-6 pb-6">
         <div className="flex items-center justify-between px-1">
           <h1 className="text-xl font-bold text-brand-navy">{t(lang, "allTime")}</h1>
@@ -220,7 +219,7 @@ export default async function AllTimePage() {
           <h2 className="mb-2 px-1 text-sm font-semibold text-brand-navy">
             {t(lang, "denominationMix")}
           </h2>
-          <DonutChartWrapper data={stats.denominationMix} />
+          <DenomMix data={stats.denominationMix} lang={lang} />
         </div>
 
         <div>
@@ -239,7 +238,6 @@ export default async function AllTimePage() {
           <SessionsTable sessions={recentSessions} lang={lang} />
         </div>
       </main>
-      <BottomTabBar />
     </div>
     </I18nProvider>
   );
